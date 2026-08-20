@@ -14,47 +14,47 @@
 
 ## Requirement Completeness
 
-- [x] CHK001 ¿Está especificado el orden canónico en que las 24 posiciones del Campo 7 se corresponden con las 24 jurisdicciones —por ejemplo, posición 1 = 901 y ascendente hasta posición 24 = 924—, o el spec solo dice "en orden"? [Gap, Spec §FR-033]
-  - **No pasa**: FR-033 dice literalmente "se corresponden en orden" sin fijar cuál es ese orden. La regla real —posición *N* → jurisdicción `900+N`— está inferida de los ejemplos del PRD, no escrita. Sin ella la regla central del cálculo no es determinista.
-  - **Resuelto (2026-08-20)**: FR-033 ahora fija el orden: la posición 1 es la jurisdicción 901 y la 24 es la 924, ascendente por código. Verificado contra los cuatro casos del PRD.
-- [x] CHK002 ¿Está definido qué hace el cálculo cuando la posición del Campo 7 de la jurisdicción de entrega contiene un dígito distinto de 1–5 (0, 6, 7, 8 o 9)? [Gap, Spec §FR-033]
-  - **No pasa**: FR-033 enumera solo los valores 1 a 5. Ningún requerimiento ni caso borde cubre los otros dígitos.
-  - **Resuelto (2026-08-20)**: FR-034 (nuevo) define que un dígito distinto de 1 a 5 hace que el cálculo de esa jurisdicción se rechace informando un estado no reconocido, sin afectar otros cálculos.
-- [x] CHK003 ¿Está especificado si el resultado devuelve el CUIT consultado, o solo el período, el CRC y las líneas de percepción? [Gap, Spec §FR-042]
+- [x] CHK001 ¿Está especificado el orden canónico en que las 24 posiciones del Campo 7 se corresponden con las 24 jurisdicciones —por ejemplo, posición 1 = 901 y ascendente hasta posición 24 = 924—, o el spec solo dice "en orden"? [Gap, Spec §FR-040]
+  - **No pasa**: FR-040 dice literalmente "se corresponden en orden" sin fijar cuál es ese orden. La regla real —posición *N* → jurisdicción `900+N`— está inferida de los ejemplos del PRD, no escrita. Sin ella la regla central del cálculo no es determinista.
+  - **Resuelto (2026-08-20)**: FR-040 ahora fija el orden: la posición 1 es la jurisdicción 901 y la 24 es la 924, ascendente por código. Verificado contra los cuatro casos del PRD.
+- [x] CHK002 ¿Está definido qué hace el cálculo cuando la posición del Campo 7 de la jurisdicción de entrega contiene un dígito distinto de 1–5 (0, 6, 7, 8 o 9)? [Gap, Spec §FR-040]
+  - **No pasa**: FR-040 enumera solo los valores 1 a 5. Ningún requerimiento ni caso borde cubre los otros dígitos.
+  - **Resuelto (2026-08-20)**: FR-041 (nuevo) define que un dígito distinto de 1 a 5 hace que el cálculo de esa jurisdicción se rechace informando un estado no reconocido, sin afectar otros cálculos.
+- [x] CHK003 ¿Está especificado si el resultado devuelve el CUIT consultado, o solo el período, el CRC y las líneas de percepción? [Gap, Spec §FR-049]
   - **No pasa**: solo se infiere de Key Entities ("no incluye datos identificatorios más allá del CUIT consultado"). Ningún FR lo exige.
-  - **Resuelto (2026-08-20)**: FR-042 ahora exige devolver el CUIT consultado además del período y el CRC.
-- [x] CHK004 ¿Está definido qué CRC —o qué ausencia explícita de CRC— acompaña al resultado cuando el CUIT no está en el padrón y se aplica la percepción por no inscripto, dado que el CRC se necesita para la Declaración Jurada? [Gap, Spec §FR-037, §FR-042]
-  - **Pasa**: el condicional de FR-042 ("cuando el CUIT esté en el padrón") define que en el caso no inscripto no hay CRC. Queda claro y es internamente consistente.
-- [x] CHK005 ¿Está especificada la jurisdicción que debe informarse en cada línea adicional (sobretasa, local, no inscripto), o solo se infiere que es la de entrega? [Completeness, Spec §FR-035, §FR-036, §FR-037, §FR-040]
-  - **Pasa**: FR-040 exige el campo y el supuesto "una sola jurisdicción por cálculo" determina sin ambigüedad cuál es.
-- [x] CHK006 ¿Están definidos los nombres canónicos de los cuatro tipos de percepción, o los rótulos que usan los escenarios ("Percepción IIBB SIRCIP", "Percepción por sobretasa", "Percepción local", "Percepción por no inscripto") son meramente ilustrativos? [Completeness, Spec §FR-040, §FR-048]
-  - **Pasa**: FR-040 enumera los cuatro tipos. Los rótulos de pantalla son decisión de UI.
-- [x] CHK007 ¿Está especificado el formato en que se informa la alícuota de cada línea —porcentaje o fracción decimal, y con cuántos decimales— dado que el set del campo 6 llega hasta 0,01%? [Gap, Spec §FR-040]
-  - **No pasa**: FR-040 dice "la alícuota aplicada" sin unidad ni precisión. Con alícuotas de 0,01% la diferencia entre porcentaje y fracción no es cosmética.
-  - **Resuelto (2026-08-20)**: FR-040 ahora exige informar la alícuota como porcentaje con hasta 2 decimales, suficiente para todo el set del campo 6 (0,01% a 5,00%).
-- [x] CHK008 ¿Están definidas la precisión decimal y el rango máximo admitidos para el importe neto gravado de entrada? [Gap, Spec §FR-031]
-  - **No pasa**: FR-031 solo exige mayor a cero. Sin precisión definida, el mismo comprobante puede dar dos importes según cuántos decimales acepte la entrada.
-  - **Resuelto (2026-08-20)**: FR-031 ahora admite hasta 2 decimales en el neto gravado y rechaza una entrada con más decimales en lugar de redondearla.
-- [x] CHK009 ¿Está especificado si la fecha de entrada es una fecha sin hora y, si admite hora, de qué zona horaria se deriva el período del padrón? [Gap, Spec §FR-030]
+  - **Resuelto (2026-08-20)**: FR-049 ahora exige devolver el CUIT consultado además del período y el CRC.
+- [x] CHK004 ¿Está definido qué CRC —o qué ausencia explícita de CRC— acompaña al resultado cuando el CUIT no está en el padrón y se aplica la percepción por no inscripto, dado que el CRC se necesita para la Declaración Jurada? [Gap, Spec §FR-044, §FR-049]
+  - **Pasa**: el condicional de FR-049 ("cuando el CUIT esté en el padrón") define que en el caso no inscripto no hay CRC. Queda claro y es internamente consistente.
+- [x] CHK005 ¿Está especificada la jurisdicción que debe informarse en cada línea adicional (sobretasa, local, no inscripto), o solo se infiere que es la de entrega? [Completeness, Spec §FR-042, §FR-043, §FR-044, §FR-047]
+  - **Pasa**: FR-047 exige el campo y el supuesto "una sola jurisdicción por cálculo" determina sin ambigüedad cuál es.
+- [x] CHK006 ¿Están definidos los nombres canónicos de los cuatro tipos de percepción, o los rótulos que usan los escenarios ("Percepción IIBB SIRCIP", "Percepción por sobretasa", "Percepción local", "Percepción por no inscripto") son meramente ilustrativos? [Completeness, Spec §FR-047, §FR-055]
+  - **Pasa**: FR-047 enumera los cuatro tipos. Los rótulos de pantalla son decisión de UI.
+- [x] CHK007 ¿Está especificado el formato en que se informa la alícuota de cada línea —porcentaje o fracción decimal, y con cuántos decimales— dado que el set del campo 6 llega hasta 0,01%? [Gap, Spec §FR-047]
+  - **No pasa**: FR-047 dice "la alícuota aplicada" sin unidad ni precisión. Con alícuotas de 0,01% la diferencia entre porcentaje y fracción no es cosmética.
+  - **Resuelto (2026-08-20)**: FR-047 ahora exige informar la alícuota como porcentaje con hasta 2 decimales, suficiente para todo el set del campo 6 (0,01% a 5,00%).
+- [x] CHK008 ¿Están definidas la precisión decimal y el rango máximo admitidos para el importe neto gravado de entrada? [Gap, Spec §FR-038]
+  - **No pasa**: FR-038 solo exige mayor a cero. Sin precisión definida, el mismo comprobante puede dar dos importes según cuántos decimales acepte la entrada.
+  - **Resuelto (2026-08-20)**: FR-038 ahora admite hasta 2 decimales en el neto gravado y rechaza una entrada con más decimales en lugar de redondearla.
+- [x] CHK009 ¿Está especificado si la fecha de entrada es una fecha sin hora y, si admite hora, de qué zona horaria se deriva el período del padrón? [Gap, Spec §FR-037]
   - **No pasa**: un instante con hora cerca del límite de mes puede derivar el período equivocado según la zona horaria, y con él un padrón equivocado.
-  - **Resuelto (2026-08-20)**: FR-030 ahora exige una fecha de calendario sin hora ni zona horaria; el período se deriva del año y mes tal como fueron indicados.
-- [x] CHK010 ¿Está documentada la correspondencia completa letra→porcentaje del campo 6 (set A–X) dentro del spec, o mediante una referencia inequívoca y versionada al Anexo A? [Completeness, Spec §FR-033]
-  - **Pasa**: FR-033 y Key Entities remiten al Anexo A del PRD, que trae la tabla completa de las 24 letras.
-- [x] CHK011 ¿Está documentada la tabla completa de alícuotas locales por jurisdicción dentro del spec, o mediante una referencia inequívoca y versionada al Anexo B? [Completeness, Spec §FR-036]
-  - **Pasa**: FR-036 remite al Anexo B, que trae las 24 jurisdicciones con su alícuota.
-- [x] CHK012 ¿Está documentada la tabla completa de adhesión a SIRCIP por jurisdicción dentro del spec, o mediante una referencia inequívoca y versionada al Anexo C? [Completeness, Spec §FR-037, §FR-038]
-  - **Pasa**: FR-037 y FR-038 remiten al Anexo C, que trae las 24 jurisdicciones con su adhesión.
+  - **Resuelto (2026-08-20)**: FR-037 ahora exige una fecha de calendario sin hora ni zona horaria; el período se deriva del año y mes tal como fueron indicados.
+- [x] CHK010 ¿Está documentada la correspondencia completa letra→porcentaje del campo 6 (set A–X) dentro del spec, o mediante una referencia inequívoca y versionada al Anexo A? [Completeness, Spec §FR-040]
+  - **Pasa**: FR-040 y Key Entities remiten al Anexo A del PRD, que trae la tabla completa de las 24 letras.
+- [x] CHK011 ¿Está documentada la tabla completa de alícuotas locales por jurisdicción dentro del spec, o mediante una referencia inequívoca y versionada al Anexo B? [Completeness, Spec §FR-043]
+  - **Pasa**: FR-043 remite al Anexo B, que trae las 24 jurisdicciones con su alícuota.
+- [x] CHK012 ¿Está documentada la tabla completa de adhesión a SIRCIP por jurisdicción dentro del spec, o mediante una referencia inequívoca y versionada al Anexo C? [Completeness, Spec §FR-044, §FR-045]
+  - **Pasa**: FR-044 y FR-045 remiten al Anexo C, que trae las 24 jurisdicciones con su adhesión.
 
 ## Requirement Clarity & Measurability
 
-- [x] CHK013 ¿Alcanza "al valor más cercano y con desempate hacia arriba" para determinar sin ambigüedad el importe de cualquier línea, incluido el caso de exactamente medio centavo? [Clarity, Spec §FR-047]
-  - **Pasa**: FR-047 explicita "medio centavo o más se redondea al centavo superior". Como todo importe es mayor a cero, no hay ambigüedad de signo.
-- [x] CHK014 ¿Está definido si el redondeo se aplica únicamente al importe final de cada línea, o también a algún valor intermedio del producto neto × alícuota? [Clarity, Spec §FR-047]
-  - **Pasa**: el importe de la línea *es* el producto, así que no hay paso intermedio. FR-047 además prohíbe recalcular totales sobre importes sin redondear.
-- [x] CHK015 ¿Es medible "el 100% de los casos de prueba definidos" sin que el spec enumere o referencie el conjunto cerrado de esos casos? [Measurability, Spec §FR-046, §SC-001]
-  - **No pasa**: ni FR-046 ni SC-001 enumeran ni referencian el conjunto. SC-001 menciona casos de desempate de redondeo que no existen como escenario en ninguna parte.
-  - **Resuelto (2026-08-20)**: FR-046 y SC-001 ahora referencian el conjunto cerrado —los Acceptance Scenarios de la Historia 3— y enumeran qué debe cubrir.
-- [x] CHK016 ¿Está especificado el método de medición del percentil 99 —tamaño y estado del padrón, concurrencia, arranque en frío o en caliente— para que el objetivo de 2 segundos sea verificable de forma repetible? [Measurability, Spec §FR-045, §SC-003]
+- [x] CHK013 ¿Alcanza "al valor más cercano y con desempate hacia arriba" para determinar sin ambigüedad el importe de cualquier línea, incluido el caso de exactamente medio centavo? [Clarity, Spec §FR-054]
+  - **Pasa**: FR-054 explicita "medio centavo o más se redondea al centavo superior". Como todo importe es mayor a cero, no hay ambigüedad de signo.
+- [x] CHK014 ¿Está definido si el redondeo se aplica únicamente al importe final de cada línea, o también a algún valor intermedio del producto neto × alícuota? [Clarity, Spec §FR-054]
+  - **Pasa**: el importe de la línea *es* el producto, así que no hay paso intermedio. FR-054 además prohíbe recalcular totales sobre importes sin redondear.
+- [x] CHK015 ¿Es medible "el 100% de los casos de prueba definidos" sin que el spec enumere o referencie el conjunto cerrado de esos casos? [Measurability, Spec §FR-053, §SC-001]
+  - **No pasa**: ni FR-053 ni SC-001 enumeran ni referencian el conjunto. SC-001 menciona casos de desempate de redondeo que no existen como escenario en ninguna parte.
+  - **Resuelto (2026-08-20)**: FR-053 y SC-001 ahora referencian el conjunto cerrado —los Acceptance Scenarios de la Historia 3— y enumeran qué debe cubrir.
+- [x] CHK016 ¿Está especificado el método de medición del percentil 99 —tamaño y estado del padrón, concurrencia, arranque en frío o en caliente— para que el objetivo de 2 segundos sea verificable de forma repetible? [Measurability, Spec §FR-052, §SC-003]
   - **No pasa**: están definidos el tamaño del padrón y la cantidad de cálculos, pero no la concurrencia ni si se mide en frío o en caliente. Sobre archivo mapeado en memoria, la diferencia entre frío y caliente es de órdenes de magnitud.
   - **Resuelto (2026-08-20)**: SC-003 ahora fija el método: padrón de 1.000.000 ya importado, al menos 1.000 cálculos secuenciales de un solo usuario, descartando el primero como calentamiento.
 - [x] CHK017 ¿Es objetivamente verificable el criterio "sin abrir el portal externo de COMARB ni aplicar ninguna regla a mano"? [Measurability, Spec §SC-004]
@@ -66,30 +66,30 @@
 
 ## Requirement Consistency
 
-- [x] CHK019 ¿Es consistente la validación del Campo 7 en la importación —que solo exige 25 dígitos numéricos terminados en 0— con el cálculo, que presupone valores 1 a 5 en la posición evaluada? [Conflict, Spec §FR-017, §FR-033]
-  - **No pasa**: un padrón con un 7 en alguna posición pasa la validación de FR-017 y llega al cálculo sin regla que lo cubra. Misma causa raíz que CHK002.
-  - **Resuelto (2026-08-20)**: FR-017 ahora aclara que valida el formato del registro y no el significado de los dígitos del Campo 7, y remite a FR-034 para el dígito no reconocido. El conflicto desaparece.
-- [x] CHK020 ¿Es consistente afirmar que un comprobante de un período anterior puede recalcularse, con tener tablas de adhesión y de alícuotas locales fijas y no versionadas por período? [Conflict, Spec §FR-029, §FR-036, §Assumptions]
-  - **No pasa**: conflicto real. FR-029 promete recálculo histórico; el supuesto de tablas fijas hace que el mismo comprobante dé distinto importe antes y después de un cambio de adhesión o de alícuota local, sin que nada falle ni avise.
-  - **Resuelto (2026-08-20)**: FR-029 ahora explicita que el recálculo usa las tablas vigentes hoy y que el sistema NO garantiza reproducir el importe original si alguna cambió. La promesa quedó alineada con lo que el sistema puede cumplir.
-- [x] CHK021 ¿Es consistente el tratamiento de las líneas de importe cero entre el caso borde de la letra A (0,00%) y la regla de subtotales "por cada tipo presente en el resultado"? [Consistency, Spec §FR-048, §Edge Cases]
-  - **Pasa**: el caso borde devuelve la línea con importe $0 y FR-048 le asigna su subtotal en $0. Coherente.
-- [x] CHK022 ¿Coincide la enumeración de los cuatro tipos de percepción entre la regla que define cada línea y la regla que define los subtotales? [Consistency, Spec §FR-040, §FR-048]
-  - **Pasa**: FR-040 y FR-048 enumeran los mismos cuatro tipos con los mismos nombres.
+- [x] CHK019 ¿Es consistente la validación del Campo 7 en la importación —que solo exige 25 dígitos numéricos terminados en 0— con el cálculo, que presupone valores 1 a 5 en la posición evaluada? [Conflict, Spec §FR-024, §FR-040]
+  - **No pasa**: un padrón con un 7 en alguna posición pasa la validación de FR-024 y llega al cálculo sin regla que lo cubra. Misma causa raíz que CHK002.
+  - **Resuelto (2026-08-20)**: FR-024 ahora aclara que valida el formato del registro y no el significado de los dígitos del Campo 7, y remite a FR-041 para el dígito no reconocido. El conflicto desaparece.
+- [x] CHK020 ¿Es consistente afirmar que un comprobante de un período anterior puede recalcularse, con tener tablas de adhesión y de alícuotas locales fijas y no versionadas por período? [Conflict, Spec §FR-036, §FR-043, §Assumptions]
+  - **No pasa**: conflicto real. FR-036 promete recálculo histórico; el supuesto de tablas fijas hace que el mismo comprobante dé distinto importe antes y después de un cambio de adhesión o de alícuota local, sin que nada falle ni avise.
+  - **Resuelto (2026-08-20)**: FR-036 ahora explicita que el recálculo usa las tablas vigentes hoy y que el sistema NO garantiza reproducir el importe original si alguna cambió. La promesa quedó alineada con lo que el sistema puede cumplir.
+- [x] CHK021 ¿Es consistente el tratamiento de las líneas de importe cero entre el caso borde de la letra A (0,00%) y la regla de subtotales "por cada tipo presente en el resultado"? [Consistency, Spec §FR-055, §Edge Cases]
+  - **Pasa**: el caso borde devuelve la línea con importe $0 y FR-055 le asigna su subtotal en $0. Coherente.
+- [x] CHK022 ¿Coincide la enumeración de los cuatro tipos de percepción entre la regla que define cada línea y la regla que define los subtotales? [Consistency, Spec §FR-047, §FR-055]
+  - **Pasa**: FR-047 y FR-055 enumeran los mismos cuatro tipos con los mismos nombres.
 - [x] CHK023 ¿Se usa "jurisdicción de entrega" como término canónico en todos los requerimientos de cálculo, sin recaídas en "provincia" fuera de los textos de pantalla? [Consistency, Spec §Assumptions]
   - **Pasa**: verificado sobre el archivo. Las dos únicas apariciones de "provincia" son las que definen la regla de terminología.
-- [x] CHK024 ¿Es consistente que el resultado excluya la razón social con la necesidad del facturador de asegurarse de que el CUIT que ingresó corresponde al cliente que está facturando? [Consistency, Spec §FR-042, §FR-043]
+- [x] CHK024 ¿Es consistente que el resultado excluya la razón social con la necesidad del facturador de asegurarse de que el CUIT que ingresó corresponde al cliente que está facturando? [Consistency, Spec §FR-049, §FR-050]
   - **Pasa**: la tensión existe pero está resuelta y documentada como decisión explícita en Clarifications, con su contrapartida (padrón compacto). El nombre del cliente lo aporta el sistema de facturación, no el padrón.
 
 ## Acceptance Criteria Quality
 
-- [x] CHK025 ¿Tiene la regla de redondeo al menos un escenario de aceptación propio, dado que ningún AC del PRD discrimina entre reglas de redondeo posibles? [Gap, Spec §FR-047]
+- [x] CHK025 ¿Tiene la regla de redondeo al menos un escenario de aceptación propio, dado que ningún AC del PRD discrimina entre reglas de redondeo posibles? [Gap, Spec §FR-054]
   - **No pasa**: no existe ningún escenario con desempate en el medio centavo. La regla es hoy inverificable y el redondeo al par —el default de la plataforma— pasaría todos los escenarios existentes.
   - **Resuelto (2026-08-20)**: Escenario 10 de la Historia 3: neto $1010 con letra C da $0,505 exactos, que half-up redondea a $0,51 y el redondeo al par daría $0,50. Discrimina la regla.
-- [x] CHK026 ¿Tienen el total general y los subtotales por tipo un escenario de aceptación que los verifique explícitamente, o solo aparecen como suma implícita en los escenarios existentes? [Acceptance Criteria, Spec §FR-048]
+- [x] CHK026 ¿Tienen el total general y los subtotales por tipo un escenario de aceptación que los verifique explícitamente, o solo aparecen como suma implícita en los escenarios existentes? [Acceptance Criteria, Spec §FR-055]
   - **No pasa**: los escenarios 1 y 2 informan el total ("totalizando $10,50"), pero ningún escenario verifica los subtotales por tipo.
   - **Resuelto (2026-08-20)**: El escenario 10 verifica explícitamente los subtotales por tipo ($0,51 SIRCIP, $10,10 sobretasa) y el total general ($10,61).
-- [x] CHK027 ¿Existe un escenario de aceptación para el código 3 del Campo 7 (no inscripto sin sobretasa, contribuyente excluido general), o solo se lo menciona como caso borde? [Coverage, Spec §FR-035, §Edge Cases]
+- [x] CHK027 ¿Existe un escenario de aceptación para el código 3 del Campo 7 (no inscripto sin sobretasa, contribuyente excluido general), o solo se lo menciona como caso borde? [Coverage, Spec §FR-042, §Edge Cases]
   - **No pasa**: el código 3 solo aparece en Edge Cases. Es el único de los cinco códigos sin escenario propio.
   - **Resuelto (2026-08-20)**: Escenario 11 de la Historia 3, con un Campo 7 construido para que Catamarca valga 3: devuelve solo la percepción del campo 6, sin sobretasa.
 - [x] CHK028 ¿Están expresados los escenarios de cálculo con datos de entrada suficientes para reproducirlos sin abrir el PRD ni sus anexos? [Acceptance Criteria, Spec §US3]
@@ -99,28 +99,28 @@
 
 - [x] CHK029 ¿Están definidos como requerimientos normativos, y no solo como casos borde, el comportamiento de las líneas de importe cero y la ausencia de montos mínimos de percepción? [Completeness, Spec §Edge Cases, §Assumptions]
   - **No pasa**: dos reglas con consecuencia fiscal viven solo en Edge Cases y Assumptions. Ningún FR obliga a devolver la línea de importe $0 ni prohíbe un mínimo.
-  - **Resuelto (2026-08-20)**: FR-041 (nuevo) eleva a requerimiento normativo devolver la línea aunque su importe redondeado sea cero, y prohíbe aplicar importes mínimos.
+  - **Resuelto (2026-08-20)**: FR-048 (nuevo) eleva a requerimiento normativo devolver la línea aunque su importe redondeado sea cero, y prohíbe aplicar importes mínimos.
 - [x] CHK030 ¿Está especificado el comportamiento del cálculo cuando el padrón del período está siendo importado en ese mismo momento, o solo se declara el caso fuera de alcance sin describir su consecuencia? [Gap, Spec §Assumptions]
   - **No pasa**: se declara fuera de alcance sin describir la consecuencia (leer un padrón a medio escribir), que es exactamente el modo de falla que el Principio IV prohíbe. Se resuelve en el plan, no en el spec.
   - **Resuelto (2026-08-20)**: El caso borde ahora describe la consecuencia a evitar —leer un padrón a medio escribir— y asigna al plan la decisión de diseño sobre visibilidad atómica, sin inventar un requerimiento nuevo.
-- [x] CHK031 ¿Tiene cada una de las seis situaciones posibles del contribuyente —códigos 1, 2, 3, 4, 5 y CUIT ausente del padrón— un requerimiento explícito que la cubra? [Coverage, Spec §FR-033, §FR-035, §FR-036, §FR-037, §FR-038]
-  - **Pasa**: FR-033 cubre la percepción base de 1 a 5; FR-035 y FR-036 cubren los adicionales de 2 y 4 y niegan explícitamente los de 3 y 5; FR-037 y FR-038 cubren el CUIT ausente en ambas variantes de adhesión.
-- [x] CHK032 ¿Está definido qué ocurre cuando el Campo 7 indica código 4 (jurisdicción no adherida) para una jurisdicción que la tabla del Anexo C marca como adherida a SIRCIP? [Conflict, Gap, Spec §FR-036]
+- [x] CHK031 ¿Tiene cada una de las seis situaciones posibles del contribuyente —códigos 1, 2, 3, 4, 5 y CUIT ausente del padrón— un requerimiento explícito que la cubra? [Coverage, Spec §FR-040, §FR-042, §FR-043, §FR-044, §FR-045]
+  - **Pasa**: FR-040 cubre la percepción base de 1 a 5; FR-042 y FR-043 cubren los adicionales de 2 y 4 y niegan explícitamente los de 3 y 5; FR-044 y FR-045 cubren el CUIT ausente en ambas variantes de adhesión.
+- [x] CHK032 ¿Está definido qué ocurre cuando el Campo 7 indica código 4 (jurisdicción no adherida) para una jurisdicción que la tabla del Anexo C marca como adherida a SIRCIP? [Conflict, Gap, Spec §FR-043]
   - **No pasa**: no hay regla de precedencia entre el padrón y la tabla cuando se contradicen.
-  - **Resuelto (2026-08-20)**: FR-039 (nuevo) fija la precedencia: manda el Campo 7, y el Anexo C se consulta solo cuando el CUIT no está en el padrón.
-- [x] CHK033 ¿Está definido qué ocurre cuando el Campo 7 indica código 1 o 2 para una jurisdicción que la tabla del Anexo C marca como no adherida? [Conflict, Gap, Spec §FR-033, §FR-035]
+  - **Resuelto (2026-08-20)**: FR-046 (nuevo) fija la precedencia: manda el Campo 7, y el Anexo C se consulta solo cuando el CUIT no está en el padrón.
+- [x] CHK033 ¿Está definido qué ocurre cuando el Campo 7 indica código 1 o 2 para una jurisdicción que la tabla del Anexo C marca como no adherida? [Conflict, Gap, Spec §FR-040, §FR-042]
   - **No pasa**: misma causa raíz que CHK032, en la dirección opuesta.
-  - **Resuelto (2026-08-20)**: Resuelto por el mismo FR-039, que cubre la contradicción en ambas direcciones.
+  - **Resuelto (2026-08-20)**: Resuelto por el mismo FR-046, que cubre la contradicción en ambas direcciones.
 
 ## Dependencies & Assumptions
 
-- [x] CHK034 ¿Está documentado cómo se detecta y se aplica un cambio de adhesión a SIRCIP de una jurisdicción, y qué efecto tiene ese cambio sobre los períodos ya importados y sobre los recálculos? [Gap, Assumption, Spec §Assumptions, §FR-029]
+- [x] CHK034 ¿Está documentado cómo se detecta y se aplica un cambio de adhesión a SIRCIP de una jurisdicción, y qué efecto tiene ese cambio sobre los períodos ya importados y sobre los recálculos? [Gap, Assumption, Spec §Assumptions, §FR-036]
   - **No pasa**: el supuesto dice que un cambio se resuelve modificando el sistema, pero no dice cómo se detecta el cambio ni qué pasa con los recálculos de períodos anteriores. Misma causa raíz que CHK020.
-  - **Resuelto (2026-08-20)**: FR-029 y el supuesto de tablas fijas ahora describen el efecto sobre los recálculos y explicitan que la detección de un cambio normativo es manual y externa: el sistema no lo detecta ni lo alerta.
+  - **Resuelto (2026-08-20)**: FR-036 y el supuesto de tablas fijas ahora describen el efecto sobre los recálculos y explicitan que la detección de un cambio normativo es manual y externa: el sistema no lo detecta ni lo alerta.
 - [x] CHK035 ¿Está validada la suposición de que el cálculo devuelve solo las percepciones de la jurisdicción de entrega, dado que el Anexo B del PRD habla de "cada jurisdicción que corresponda calcular percepción"? [Assumption, Spec §Assumptions]
   - **Pasa**: el supuesto cita la evidencia —la frase del Anexo A y la coincidencia con AC-20 a AC-24—, no se afirma sin respaldo.
-- [x] CHK036 ¿Está documentado el origen y la autoridad normativa de la alícuota fija del 1% de sobretasa y del 2% de no inscripto, dado que el PRD declara estos datos provistos sin archivo fuente documental? [Assumption, Spec §FR-035, §FR-037]
-  - **No pasa**: FR-035 y FR-037 fijan los porcentajes sin dejar constancia de que su procedencia es un dato provisto sin fuente documental, a diferencia del resto de las tablas.
+- [x] CHK036 ¿Está documentado el origen y la autoridad normativa de la alícuota fija del 1% de sobretasa y del 2% de no inscripto, dado que el PRD declara estos datos provistos sin archivo fuente documental? [Assumption, Spec §FR-042, §FR-044]
+  - **No pasa**: FR-042 y FR-044 fijan los porcentajes sin dejar constancia de que su procedencia es un dato provisto sin fuente documental, a diferencia del resto de las tablas.
   - **Resuelto (2026-08-20)**: Nuevo supuesto "Procedencia de las alícuotas fijas": deja constancia de que el 1% y el 2% son datos provistos sin archivo fuente documental, a diferencia de las tablas de los anexos.
 
 ## Resultado de la pasada
@@ -138,7 +138,7 @@ Decisiones de dominio tomadas:
 | Recálculo histórico vs. tablas sin versionar | Se documenta la limitación; versionar exigiría enmendar el PRD | CHK020, CHK034 |
 | Precisión del neto gravado | 2 decimales; con más decimales se rechaza | CHK008 |
 
-Requerimientos nuevos que surgieron del cierre: FR-034 (dígito no reconocido), FR-039 (precedencia del Campo 7), FR-041 (líneas de importe cero y sin mínimos). Escenarios de aceptación nuevos en la Historia 3: 10 (desempate de redondeo y subtotales), 11 (código 3), 12 (dígito no reconocido).
+Requerimientos nuevos que surgieron del cierre: FR-041 (dígito no reconocido), FR-046 (precedencia del Campo 7), FR-048 (líneas de importe cero y sin mínimos). Escenarios de aceptación nuevos en la Historia 3: 10 (desempate de redondeo y subtotales), 11 (código 3), 12 (dígito no reconocido).
 
 ## Notes
 

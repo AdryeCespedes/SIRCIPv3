@@ -118,7 +118,7 @@
   - **Pasa**: FR-005 prohíbe el auto-registro y "Fuera de Alcance" declara el alta manual. Quién ejecuta el alta es una cuestión organizativa, no un requerimiento del sistema.
 - [x] CHK033 ¿Está documentado que el canal de transporte de las credenciales y de la sesión debe ser seguro? [Gap, fuera del PRD, Spec §FR-001]
   - **No pasa**: no se menciona el transporte. Hueco por omisión del PRD.
-  - **Resuelto (2026-08-20)**: FR-012 (nuevo) exige recibir credenciales y sesión únicamente por canal cifrado y rechazar sin procesar lo que llegue por un canal no cifrado, respaldado por el RNF-06 que se agregó al PRD.
+  - **Resuelto (2026-08-20)**: FR-019 (nuevo) exige recibir credenciales y sesión únicamente por canal cifrado y rechazar sin procesar lo que llegue por un canal no cifrado, respaldado por el RNF-06 que se agregó al PRD.
 - [x] CHK034 ¿Está validado el supuesto de que la expiración de 24 horas es adecuada para el contexto de uso? [Assumption, Spec §FR-004]
   - **Pasa**: no es un supuesto del spec sino el RNF-03 del PRD, trazado como tal. La autoridad del número está en el PRD, no en una decisión implícita.
 

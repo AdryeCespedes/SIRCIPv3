@@ -14,128 +14,128 @@
 
 ## Requirement Completeness
 
-- [x] CHK001 ¿Está especificada la codificación de caracteres del archivo del padrón (UTF-8, Windows-1252, Latin-1)? [Gap, Spec §FR-017]
+- [x] CHK001 ¿Está especificada la codificación de caracteres del archivo del padrón (UTF-8, Windows-1252, Latin-1)? [Gap, Spec §FR-024]
   - **No pasa**: el spec no menciona la codificación en ningún lugar. Con razón social de hasta 70 caracteres, la codificación decide si el campo se mide bien y si el archivo parsea.
-  - **Resuelto (2026-08-20)**: FR-017 exige decodificar el archivo sin fallar ante bytes inválidos. Con FR-019, los campos conservados son solo dígitos y una letra ASCII, así que la codificación no puede afectar ningún importe.
-- [x] CHK002 ¿Está especificado qué terminador de línea acepta el archivo, y si un archivo con LF en lugar de CRLF es válido, dado que el Anexo A del PRD declara CRLF? [Gap, Spec §FR-017]
-  - **No pasa**: FR-017 no dice nada de terminadores de línea. El Anexo A del PRD declara CRLF y el spec no lo trasladó.
-  - **Resuelto (2026-08-20)**: FR-017 acepta tanto CRLF como LF, con lo que las fixtures del proyecto (que usan LF) y el formato declarado en el Anexo A (CRLF) quedan ambos cubiertos.
-- [x] CHK003 ¿Está definido cómo se trata el segmento vacío que deja un archivo terminado en CRLF: como registro inválido que rechaza todo el archivo, o como fin de archivo? [Gap, Spec §FR-017, §FR-021]
-  - **No pasa**: no está tratado. Un archivo terminado en CRLF deja un segmento vacío final; si cuenta como línea, FR-021 rechaza todo padrón real.
-  - **Resuelto (2026-08-20)**: FR-017 descarta explícitamente el segmento vacío que deja un archivo terminado en fin de línea, sin tratarlo como registro.
-- [x] CHK004 ¿Está especificado si los campos pueden venir entrecomillados, y qué ocurre cuando la razón social contiene una coma, que es el separador de campos? [Gap, Spec §FR-017]
-  - **No pasa**: FR-017 dice "siete campos separados por coma" y nada sobre entrecomillado. Una razón social con coma produce ocho campos y, por FR-021, tira el archivo entero.
-  - **Resuelto (2026-08-20)**: FR-017 exige separar en siete campos respetando el entrecomillado, de modo que una coma dentro de un campo entrecomillado no se interprete como separador.
-- [x] CHK005 ¿Está definido si el encabezado se valida contra los nombres de columna esperados, o solo se descarta por posición? [Gap, Spec §FR-017]
-  - **No pasa**: FR-017 descarta la primera línea por posición, sin contrastarla con los nombres de columna esperados. Un reordenamiento de columnas en el origen se leería como datos válidos.
-  - **Resuelto (2026-08-20)**: FR-018 exige que la primera línea sea el encabezado y lo valida contra los nombres esperados. Un reordenamiento o renombre de columnas en el origen ahora rechaza el archivo en lugar de leerse como datos válidos.
-- [x] CHK006 ¿Está especificado qué se hace con el archivo de origen después de una importación exitosa: queda, se mueve o se elimina? [Gap, fuera del PRD, Spec §FR-013]
+  - **Resuelto (2026-08-20)**: FR-024 exige decodificar el archivo sin fallar ante bytes inválidos. Con FR-026, los campos conservados son solo dígitos y una letra ASCII, así que la codificación no puede afectar ningún importe.
+- [x] CHK002 ¿Está especificado qué terminador de línea acepta el archivo, y si un archivo con LF en lugar de CRLF es válido, dado que el Anexo A del PRD declara CRLF? [Gap, Spec §FR-024]
+  - **No pasa**: FR-024 no dice nada de terminadores de línea. El Anexo A del PRD declara CRLF y el spec no lo trasladó.
+  - **Resuelto (2026-08-20)**: FR-024 acepta tanto CRLF como LF, con lo que las fixtures del proyecto (que usan LF) y el formato declarado en el Anexo A (CRLF) quedan ambos cubiertos.
+- [x] CHK003 ¿Está definido cómo se trata el segmento vacío que deja un archivo terminado en CRLF: como registro inválido que rechaza todo el archivo, o como fin de archivo? [Gap, Spec §FR-024, §FR-028]
+  - **No pasa**: no está tratado. Un archivo terminado en CRLF deja un segmento vacío final; si cuenta como línea, FR-028 rechaza todo padrón real.
+  - **Resuelto (2026-08-20)**: FR-024 descarta explícitamente el segmento vacío que deja un archivo terminado en fin de línea, sin tratarlo como registro.
+- [x] CHK004 ¿Está especificado si los campos pueden venir entrecomillados, y qué ocurre cuando la razón social contiene una coma, que es el separador de campos? [Gap, Spec §FR-024]
+  - **No pasa**: FR-024 dice "siete campos separados por coma" y nada sobre entrecomillado. Una razón social con coma produce ocho campos y, por FR-028, tira el archivo entero.
+  - **Resuelto (2026-08-20)**: FR-024 exige separar en siete campos respetando el entrecomillado, de modo que una coma dentro de un campo entrecomillado no se interprete como separador.
+- [x] CHK005 ¿Está definido si el encabezado se valida contra los nombres de columna esperados, o solo se descarta por posición? [Gap, Spec §FR-024]
+  - **No pasa**: FR-024 descarta la primera línea por posición, sin contrastarla con los nombres de columna esperados. Un reordenamiento de columnas en el origen se leería como datos válidos.
+  - **Resuelto (2026-08-20)**: FR-025 exige que la primera línea sea el encabezado y lo valida contra los nombres esperados. Un reordenamiento o renombre de columnas en el origen ahora rechaza el archivo en lugar de leerse como datos válidos.
+- [x] CHK006 ¿Está especificado qué se hace con el archivo de origen después de una importación exitosa: queda, se mueve o se elimina? [Gap, fuera del PRD, Spec §FR-020]
   - **No pasa**: no hay ningún requerimiento sobre el archivo de origen después de importar. Hueco por omisión del PRD.
   - **Resuelto (2026-08-20)**: excluido explícitamente en "Fuera de Alcance": el `.txt` queda donde está y el directorio de importación acumula los padrones de todos los meses. La omisión pasó de accidental a deliberada.
-- [x] CHK007 ¿Está definido el rango válido del mes y del año que indica el Administrador al importar? [Gap, Spec §FR-013]
-  - **No pasa**: FR-013 recibe mes y año sin rango válido. FR-031 valida las entradas del cálculo, pero no hay equivalente para la importación.
-  - **Resuelto (2026-08-20)**: FR-013 exige mes entre 1 y 12 y año de cuatro dígitos, y rechaza por datos inválidos sin leer el archivo.
-- [x] CHK008 ¿Está especificado un tamaño máximo de archivo o una cantidad máxima de registros por encima de la cual la importación se rechaza en lugar de degradarse? [Gap, fuera del PRD, Spec §FR-044]
-  - **No pasa**: no hay cota superior. FR-044 fija el objetivo para 1.000.000 de registros y no dice qué pasa con cinco millones. Hueco por omisión del PRD.
+- [x] CHK007 ¿Está definido el rango válido del mes y del año que indica el Administrador al importar? [Gap, Spec §FR-020]
+  - **No pasa**: FR-020 recibe mes y año sin rango válido. FR-038 valida las entradas del cálculo, pero no hay equivalente para la importación.
+  - **Resuelto (2026-08-20)**: FR-020 exige mes entre 1 y 12 y año de cuatro dígitos, y rechaza por datos inválidos sin leer el archivo.
+- [x] CHK008 ¿Está especificado un tamaño máximo de archivo o una cantidad máxima de registros por encima de la cual la importación se rechaza en lugar de degradarse? [Gap, fuera del PRD, Spec §FR-051]
+  - **No pasa**: no hay cota superior. FR-051 fija el objetivo para 1.000.000 de registros y no dice qué pasa con cinco millones. Hueco por omisión del PRD.
   - **Resuelto (2026-08-20)**: excluido explícitamente en "Fuera de Alcance": no hay cota máxima; un archivo mucho mayor a un millón de registros simplemente excederá los 60 segundos comprometidos.
-- [x] CHK009 ¿Está definido qué campos muestra la vista del historial, en qué orden, y si se pagina cuando el historial crece? [Completeness, Spec §FR-028]
-  - **No pasa**: FR-023, FR-024 y el escenario 2 de la Historia 2 definen qué datos tiene una constancia, pero FR-028 no define orden ni paginación de la vista, y por FR-029 el historial crece sin límite.
-  - **Resuelto (2026-08-20)**: FR-028 fija el orden por fecha descendente y enumera el contenido de cada fila, y declara que no se requiere paginación porque el historial crece a razón de una constancia por intento.
-- [x] CHK010 ¿Está definida una política de retención del historial de importaciones, que por FR-027 nunca se elimina físicamente? [Gap, fuera del PRD, Spec §FR-027]
-  - **No pasa**: FR-027 prohíbe borrar la constancia y no hay política de retención. Hueco por omisión del PRD.
+- [x] CHK009 ¿Está definido qué campos muestra la vista del historial, en qué orden, y si se pagina cuando el historial crece? [Completeness, Spec §FR-035]
+  - **No pasa**: FR-030, FR-031 y el escenario 2 de la Historia 2 definen qué datos tiene una constancia, pero FR-035 no define orden ni paginación de la vista, y por FR-036 el historial crece sin límite.
+  - **Resuelto (2026-08-20)**: FR-035 fija el orden por fecha descendente y enumera el contenido de cada fila, y declara que no se requiere paginación porque el historial crece a razón de una constancia por intento.
+- [x] CHK010 ¿Está definida una política de retención del historial de importaciones, que por FR-034 nunca se elimina físicamente? [Gap, fuera del PRD, Spec §FR-034]
+  - **No pasa**: FR-034 prohíbe borrar la constancia y no hay política de retención. Hueco por omisión del PRD.
   - **Resuelto (2026-08-20)**: excluido explícitamente en "Fuera de Alcance": el historial crece indefinidamente y no hay política de retención.
-- [x] CHK011 ¿Está especificado si la constancia conserva la cantidad de registros importados después de que el padrón fue liberado del almacenamiento por una baja lógica? [Gap, Spec §FR-023, §FR-027]
-  - **Pasa**: FR-027 exige que la constancia no se elimine ni se quite del historial, y FR-023 define que incluye la cantidad de registros. La constancia es un registro aparte del padrón, así que su contenido sobrevive a la liberación del almacenamiento.
+- [x] CHK011 ¿Está especificado si la constancia conserva la cantidad de registros importados después de que el padrón fue liberado del almacenamiento por una baja lógica? [Gap, Spec §FR-030, §FR-034]
+  - **Pasa**: FR-034 exige que la constancia no se elimine ni se quite del historial, y FR-030 define que incluye la cantidad de registros. La constancia es un registro aparte del padrón, así que su contenido sobrevive a la liberación del almacenamiento.
 
-- [x] CHK037 ¿Está definido qué ocurre si el archivo no trae línea de encabezado, dado que FR-017 descarta la primera línea por posición y en ese caso descartaría un registro real? [Gap, Spec §FR-017]
-  - **No pasa**: FR-017 asume que el encabezado existe siempre. Un archivo sin encabezado pierde su primer registro en silencio, sin error ni advertencia: un CUIT dejaría de percibir sin que nada falle. Los dos fixtures de `SIRCIPv1/ejemplos-padron` no tienen encabezado, así que el caso no es hipotético.
-  - **Resuelto (2026-08-20)**: FR-018 exige que la primera línea sea el encabezado y prohíbe descartarla si no lo es. Un archivo sin encabezado se rechaza con error en lugar de perder su primer registro en silencio.
+- [x] CHK037 ¿Está definido qué ocurre si el archivo no trae línea de encabezado, dado que FR-024 descarta la primera línea por posición y en ese caso descartaría un registro real? [Gap, Spec §FR-024]
+  - **No pasa**: FR-024 asume que el encabezado existe siempre. Un archivo sin encabezado pierde su primer registro en silencio, sin error ni advertencia: un CUIT dejaría de percibir sin que nada falle. Los dos fixtures de `SIRCIPv1/ejemplos-padron` no tienen encabezado, así que el caso no es hipotético.
+  - **Resuelto (2026-08-20)**: FR-025 exige que la primera línea sea el encabezado y prohíbe descartarla si no lo es. Un archivo sin encabezado se rechaza con error en lugar de perder su primer registro en silencio.
 
 ## Requirement Clarity & Ambiguity
 
-- [x] CHK012 ¿Es "razón social alfanumérica de hasta 70" suficientemente preciso, dado que una razón social real trae espacios, puntos y acentos que un criterio alfanumérico estricto rechazaría, y que rechazar una línea implica rechazar el archivo entero? [Ambiguity, Spec §FR-017, §FR-021]
-  - **No pasa**: "alfanumérica" en sentido estricto excluye espacios, puntos y acentos, o sea toda razón social real. Combinado con FR-021, una lectura literal rechaza todo padrón.
-  - **Resuelto (2026-08-20)**: FR-019 acepta la razón social y la jurisdicción sede como texto libre, sin validar contenido ni longitud, con el motivo escrito: rechazar un padrón completo por un campo que no se conserva sería un modo de falla injustificado.
-- [x] CHK013 ¿Está definido si la resolución de la ruta sigue enlaces simbólicos, de modo que un enlace ubicado dentro del directorio de importación no permita escapar de él? [Ambiguity, Spec §FR-016]
-  - **No pasa**: FR-016 dice "una vez resuelta" sin definir si la resolución es canónica. Un enlace simbólico ubicado dentro del directorio permitiría escapar del confinamiento.
-  - **Resuelto (2026-08-20)**: FR-016 exige resolución a forma canónica —enlaces simbólicos, referencias relativas y equivalencias del sistema de archivos— y rechaza explícitamente el enlace ubicado dentro del directorio que apunte afuera.
+- [x] CHK012 ¿Es "razón social alfanumérica de hasta 70" suficientemente preciso, dado que una razón social real trae espacios, puntos y acentos que un criterio alfanumérico estricto rechazaría, y que rechazar una línea implica rechazar el archivo entero? [Ambiguity, Spec §FR-024, §FR-028]
+  - **No pasa**: "alfanumérica" en sentido estricto excluye espacios, puntos y acentos, o sea toda razón social real. Combinado con FR-028, una lectura literal rechaza todo padrón.
+  - **Resuelto (2026-08-20)**: FR-026 acepta la razón social y la jurisdicción sede como texto libre, sin validar contenido ni longitud, con el motivo escrito: rechazar un padrón completo por un campo que no se conserva sería un modo de falla injustificado.
+- [x] CHK013 ¿Está definido si la resolución de la ruta sigue enlaces simbólicos, de modo que un enlace ubicado dentro del directorio de importación no permita escapar de él? [Ambiguity, Spec §FR-023]
+  - **No pasa**: FR-023 dice "una vez resuelta" sin definir si la resolución es canónica. Un enlace simbólico ubicado dentro del directorio permitiría escapar del confinamiento.
+  - **Resuelto (2026-08-20)**: FR-023 exige resolución a forma canónica —enlaces simbólicos, referencias relativas y equivalencias del sistema de archivos— y rechaza explícitamente el enlace ubicado dentro del directorio que apunte afuera.
 - [x] CHK014 ¿Es "los intentos de importación que llegan a leer o buscar el archivo" un criterio preciso para distinguir qué intentos quedan registrados en el historial y cuáles no? [Clarity, Spec §SC-008]
-  - **No pasa**: "llegan a leer o buscar el archivo" obliga al lector a inferir que la única excepción es la de FR-016. El criterio debería nombrarla.
+  - **No pasa**: "llegan a leer o buscar el archivo" obliga al lector a inferir que la única excepción es la de FR-023. El criterio debería nombrarla.
   - **Resuelto (2026-08-20)**: SC-008 se reescribió: el 100% de los intentos aparece en el historial, con la única excepción de los rechazados por ruta fuera del directorio. Ya no hay que inferir cuál es la excepción.
-- [x] CHK015 ¿Está definido si la liberación del almacenamiento del padrón dado de baja es inmediata o diferida? [Clarity, Spec §FR-027]
-  - **No pasa**: FR-027 exige liberar el almacenamiento sin decir si es inmediato o diferido.
-  - **Resuelto (2026-08-20)**: FR-027 exige que la liberación del almacenamiento sea inmediata, dentro de la misma operación de baja.
-- [x] CHK016 ¿Está definido si la importación es sincrónica, dado que puede tardar hasta 60 segundos, y qué se le informa al Administrador mientras corre? [Gap, fuera del PRD, Spec §FR-044]
+- [x] CHK015 ¿Está definido si la liberación del almacenamiento del padrón dado de baja es inmediata o diferida? [Clarity, Spec §FR-034]
+  - **No pasa**: FR-034 exige liberar el almacenamiento sin decir si es inmediato o diferido.
+  - **Resuelto (2026-08-20)**: FR-034 exige que la liberación del almacenamiento sea inmediata, dentro de la misma operación de baja.
+- [x] CHK016 ¿Está definido si la importación es sincrónica, dado que puede tardar hasta 60 segundos, y qué se le informa al Administrador mientras corre? [Gap, fuera del PRD, Spec §FR-051]
   - **No pasa**: no se define si la importación es sincrónica ni qué se informa durante los hasta 60 segundos que puede tardar. Hueco por omisión del PRD.
-  - **Resuelto (2026-08-20)**: FR-014 formaliza que la importación es sincrónica y responde con la constancia una vez concluida, derivado del AC-06 del PRD que ya lo implicaba. La indicación de progreso queda excluida explícitamente en "Fuera de Alcance".
+  - **Resuelto (2026-08-20)**: FR-021 formaliza que la importación es sincrónica y responde con la constancia una vez concluida, derivado del AC-06 del PRD que ya lo implicaba. La indicación de progreso queda excluida explícitamente en "Fuera de Alcance".
 
 ## Requirement Consistency
 
-- [x] CHK017 ¿Es consistente que FR-017 valide el período de la línea solo como formato `aaaamm` con el caso borde que rechaza el archivo cuando ese período no coincide con el mes y año indicados por el Administrador? [Conflict, Spec §FR-017, §Edge Cases]
-  - **No pasa**: FR-017 valida el período de la línea solo como formato `aaaamm`; que además deba coincidir con el mes y año indicados aparece únicamente en un caso borde, no en el requerimiento.
-  - **Resuelto (2026-08-20)**: FR-019 exige que el período de la línea coincida con el mes y año indicados por el Administrador. La regla dejó de vivir solo en un caso borde.
-- [x] CHK018 ¿Enumera FR-024 la excepción de FR-016 —ruta fuera del directorio, que explícitamente no genera constancia—, o queda una contradicción entre "registrar cada importación fallida" y "no generar constancia en el historial"? [Conflict, Spec §FR-016, §FR-024]
-  - **No pasa**: FR-024 enumera archivo inexistente, ilegible o con líneas inválidas, y no menciona que la ruta fuera del directorio es la excepción que no genera constancia. Queda contradicción aparente con FR-016.
-  - **Resuelto (2026-08-20)**: FR-016 declara ser el único rechazo que no genera constancia, y FR-024 lo nombra como la única excepción. La contradicción aparente desapareció desde los dos lados.
-- [x] CHK019 ¿Es consistente validar la jurisdicción sede solo como numérica de 3 posiciones con que la entidad Jurisdicción acote los códigos válidos a 901–924? [Consistency, Spec §FR-017, §Key Entities]
-  - **Pasa**: Validar la jurisdicción sede solo como numérica de 3 posiciones es adecuado y deliberado: FR-043 la descarta, y acotarla a 901–924 haría que un padrón de un millón de registros se rechace entero por un campo que nadie usa.
-- [x] CHK020 ¿Es consistente que FR-043 descarte la razón social con que FR-017 la valide, en cuanto a qué corresponde hacer cuando la validación de un campo que igual se descarta falla? [Consistency, Spec §FR-017, §FR-043]
-  - **No pasa**: FR-017 valida la razón social y la jurisdicción sede, FR-043 las descarta, y nada resuelve la tensión: hoy una razón social malformada rechaza un padrón de un millón de registros por un campo que no se conserva.
-  - **Resuelto (2026-08-20)**: FR-019 resuelve la tensión: solo se valida estrictamente lo que se conserva, así que un campo descartable malformado ya no puede tirar un padrón de un millón de registros.
-- [x] CHK021 ¿Está definido en un requerimiento, y no solo en un caso borde, que la cantidad de registros informada cuenta una sola vez los CUIT duplicados idénticos? [Consistency, Spec §FR-022, §FR-023, §Edge Cases]
-  - **No pasa**: que los CUIT duplicados idénticos cuenten una sola vez está solo en un caso borde. FR-023 pide "la cantidad de registros importados" sin definirla.
-  - **Resuelto (2026-08-20)**: FR-023 define la cantidad de registros como la de CUIT distintos persistidos, contando una sola vez los duplicados idénticos que admite FR-022.
+- [x] CHK017 ¿Es consistente que FR-024 valide el período de la línea solo como formato `aaaamm` con el caso borde que rechaza el archivo cuando ese período no coincide con el mes y año indicados por el Administrador? [Conflict, Spec §FR-024, §Edge Cases]
+  - **No pasa**: FR-024 valida el período de la línea solo como formato `aaaamm`; que además deba coincidir con el mes y año indicados aparece únicamente en un caso borde, no en el requerimiento.
+  - **Resuelto (2026-08-20)**: FR-026 exige que el período de la línea coincida con el mes y año indicados por el Administrador. La regla dejó de vivir solo en un caso borde.
+- [x] CHK018 ¿Enumera FR-031 la excepción de FR-023 —ruta fuera del directorio, que explícitamente no genera constancia—, o queda una contradicción entre "registrar cada importación fallida" y "no generar constancia en el historial"? [Conflict, Spec §FR-023, §FR-031]
+  - **No pasa**: FR-031 enumera archivo inexistente, ilegible o con líneas inválidas, y no menciona que la ruta fuera del directorio es la excepción que no genera constancia. Queda contradicción aparente con FR-023.
+  - **Resuelto (2026-08-20)**: FR-023 declara ser el único rechazo que no genera constancia, y FR-031 lo nombra como la única excepción. La contradicción aparente desapareció desde los dos lados.
+- [x] CHK019 ¿Es consistente validar la jurisdicción sede solo como numérica de 3 posiciones con que la entidad Jurisdicción acote los códigos válidos a 901–924? [Consistency, Spec §FR-024, §Key Entities]
+  - **Pasa**: Validar la jurisdicción sede solo como numérica de 3 posiciones es adecuado y deliberado: FR-050 la descarta, y acotarla a 901–924 haría que un padrón de un millón de registros se rechace entero por un campo que nadie usa.
+- [x] CHK020 ¿Es consistente que FR-050 descarte la razón social con que FR-024 la valide, en cuanto a qué corresponde hacer cuando la validación de un campo que igual se descarta falla? [Consistency, Spec §FR-024, §FR-050]
+  - **No pasa**: FR-024 valida la razón social y la jurisdicción sede, FR-050 las descarta, y nada resuelve la tensión: hoy una razón social malformada rechaza un padrón de un millón de registros por un campo que no se conserva.
+  - **Resuelto (2026-08-20)**: FR-026 resuelve la tensión: solo se valida estrictamente lo que se conserva, así que un campo descartable malformado ya no puede tirar un padrón de un millón de registros.
+- [x] CHK021 ¿Está definido en un requerimiento, y no solo en un caso borde, que la cantidad de registros informada cuenta una sola vez los CUIT duplicados idénticos? [Consistency, Spec §FR-029, §FR-030, §Edge Cases]
+  - **No pasa**: que los CUIT duplicados idénticos cuenten una sola vez está solo en un caso borde. FR-030 pide "la cantidad de registros importados" sin definirla.
+  - **Resuelto (2026-08-20)**: FR-030 define la cantidad de registros como la de CUIT distintos persistidos, contando una sola vez los duplicados idénticos que admite FR-029.
 
 ## Acceptance Criteria Quality & Measurability
 
-- [x] CHK022 ¿Está especificado el método de medición del límite de 60 segundos: desde qué evento hasta qué evento, y si incluye la validación, la escritura y la disponibilidad del padrón para consulta? [Measurability, Spec §FR-044, §SC-002]
-  - **No pasa**: ni FR-044 ni SC-002 dicen desde qué evento hasta qué evento se miden los 60 segundos, ni si incluyen validación, escritura y disponibilidad para consulta.
-  - **Resuelto (2026-08-20)**: FR-044 y SC-002 definen los extremos de la medición: desde la aceptación del pedido hasta que el padrón queda consultable, incluyendo validación completa y escritura.
+- [x] CHK022 ¿Está especificado el método de medición del límite de 60 segundos: desde qué evento hasta qué evento, y si incluye la validación, la escritura y la disponibilidad del padrón para consulta? [Measurability, Spec §FR-051, §SC-002]
+  - **No pasa**: ni FR-051 ni SC-002 dicen desde qué evento hasta qué evento se miden los 60 segundos, ni si incluyen validación, escritura y disponibilidad para consulta.
+  - **Resuelto (2026-08-20)**: FR-051 y SC-002 definen los extremos de la medición: desde la aceptación del pedido hasta que el padrón queda consultable, incluyendo validación completa y escritura.
 - [x] CHK023 ¿Está definido el entorno de referencia —hardware, tipo de disco, estado de caché— sobre el que los límites de 60 segundos y de 2 segundos son exigibles? [Gap, Spec §SC-002, §SC-003]
   - **No pasa**: ningún criterio de éxito define el entorno. Los 60 segundos y los 2 segundos no son exigibles sin decir sobre qué máquina y qué disco.
   - **Resuelto (2026-08-20)**: nuevo supuesto "Entorno de referencia de performance": el equipo de desarrollo en uso con almacenamiento de estado sólido, y la obligación explícita de revalidar los límites en hardware distinto.
-- [x] CHK024 ¿Tiene la regla de deduplicación de CUIT idénticos un escenario de aceptación propio en la Historia 2? [Gap, Spec §FR-022]
+- [x] CHK024 ¿Tiene la regla de deduplicación de CUIT idénticos un escenario de aceptación propio en la Historia 2? [Gap, Spec §FR-029]
   - **No pasa**: la Historia 2 tiene seis escenarios y ninguno cubre CUIT duplicados, ni en la variante idéntica ni en la divergente.
   - **Resuelto (2026-08-20)**: escenarios 7 y 8 de la Historia 2, que cubren el duplicado idéntico (se persiste una vez y se cuenta una vez) y el divergente (rechazo total).
-- [x] CHK025 ¿Tiene la liberación del almacenamiento en la baja lógica un escenario de aceptación que la distinga de la simple marca de borrado en el historial? [Acceptance Criteria, Spec §FR-027]
+- [x] CHK025 ¿Tiene la liberación del almacenamiento en la baja lógica un escenario de aceptación que la distinga de la simple marca de borrado en el historial? [Acceptance Criteria, Spec §FR-034]
   - **No pasa**: el escenario 2 de la Historia 5 verifica la marca de borrado en el historial, pero ninguno distingue la liberación del almacenamiento.
   - **Resuelto (2026-08-20)**: escenario 4 de la Historia 5, que distingue la liberación del almacenamiento de la marca de borrado: la constancia permanece con su cantidad original.
-- [x] CHK026 ¿Tiene el rechazo de un período ya importado y no dado de baja un escenario de aceptación propio, o solo aparece como caso borde? [Coverage, Spec §FR-026, §Edge Cases]
-  - **No pasa**: el rechazo de un período ya importado y no dado de baja está en FR-026 y en un caso borde, sin escenario de aceptación propio.
+- [x] CHK026 ¿Tiene el rechazo de un período ya importado y no dado de baja un escenario de aceptación propio, o solo aparece como caso borde? [Coverage, Spec §FR-033, §Edge Cases]
+  - **No pasa**: el rechazo de un período ya importado y no dado de baja está en FR-033 y en un caso borde, sin escenario de aceptación propio.
   - **Resuelto (2026-08-20)**: escenario 9 de la Historia 2, que cubre el rechazo de un período ya importado y no dado de baja.
 - [x] CHK027 ¿Es medible SC-007 sobre un archivo cuya única línea inválida está en la última posición, y no solo en la primera? [Measurability, Spec §SC-007]
   - **Pasa**: SC-007 dice "al menos una línea inválida" sin privilegiar ninguna posición, así que ya cubre el caso de la última línea. Dónde ubicar la línea inválida es diseño de test, no calidad del requerimiento.
 
 ## Scenario Coverage — Excepción y Recuperación
 
-- [x] CHK028 ¿Está definido qué ocurre si el proceso se interrumpe a mitad de una importación (caída, reinicio del servidor) y en qué estado queda el período? [Gap, Recovery, Spec §FR-021]
+- [x] CHK028 ¿Está definido qué ocurre si el proceso se interrumpe a mitad de una importación (caída, reinicio del servidor) y en qué estado queda el período? [Gap, Recovery, Spec §FR-028]
   - **No pasa**: no hay ningún requerimiento de recuperación. Tras una caída a mitad de importación, el estado del período queda indefinido, que es justamente lo que el principio de integridad todo-o-nada prohíbe.
-  - **Resuelto (2026-08-20)**: FR-025 (nuevo) define que tras una interrupción el período queda como no importado, sin registros parciales, y habilitado para otro intento sin requerir baja lógica previa.
-- [x] CHK029 ¿Está definido qué ocurre si el almacenamiento se agota mientras se escribe el padrón, dado que FR-024 solo enumera archivo inexistente, ilegible o con líneas inválidas? [Gap, Exception Flow, Spec §FR-024]
-  - **No pasa**: FR-024 enumera tres causas de falla y ninguna es la escritura. Un almacenamiento agotado a mitad de la escritura no tiene comportamiento definido.
-  - **Resuelto (2026-08-20)**: FR-024 incluye "almacenamiento insuficiente para persistir el padrón" entre las causas de falla enumeradas.
-- [x] CHK030 ¿Está definido qué ocurre si dos Administradores importan el mismo período simultáneamente y ambos superan la verificación de FR-026? [Gap, Spec §FR-026, §Assumptions]
-  - **No pasa**: el caso borde describe la consecuencia del cálculo durante una importación, pero no la de dos importaciones simultáneas del mismo período superando ambas la verificación de FR-026.
+  - **Resuelto (2026-08-20)**: FR-032 (nuevo) define que tras una interrupción el período queda como no importado, sin registros parciales, y habilitado para otro intento sin requerir baja lógica previa.
+- [x] CHK029 ¿Está definido qué ocurre si el almacenamiento se agota mientras se escribe el padrón, dado que FR-031 solo enumera archivo inexistente, ilegible o con líneas inválidas? [Gap, Exception Flow, Spec §FR-031]
+  - **No pasa**: FR-031 enumera tres causas de falla y ninguna es la escritura. Un almacenamiento agotado a mitad de la escritura no tiene comportamiento definido.
+  - **Resuelto (2026-08-20)**: FR-031 incluye "almacenamiento insuficiente para persistir el padrón" entre las causas de falla enumeradas.
+- [x] CHK030 ¿Está definido qué ocurre si dos Administradores importan el mismo período simultáneamente y ambos superan la verificación de FR-033? [Gap, Spec §FR-033, §Assumptions]
+  - **No pasa**: el caso borde describe la consecuencia del cálculo durante una importación, pero no la de dos importaciones simultáneas del mismo período superando ambas la verificación de FR-033.
   - **Resuelto (2026-08-20)**: el caso borde ahora describe la consecuencia propia del doble import: ambas importaciones pueden superar la verificación de período ya importado antes de que cualquiera persista, y el período podría quedar con datos de las dos.
-- [x] CHK031 ¿Está definido qué ocurre si el archivo cambia en disco mientras se lo está leyendo? [Gap, Exception Flow, Spec §FR-017]
+- [x] CHK031 ¿Está definido qué ocurre si el archivo cambia en disco mientras se lo está leyendo? [Gap, Exception Flow, Spec §FR-024]
   - **No pasa**: no está tratado. Un archivo modificado o truncado mientras se lo lee puede producir un padrón internamente inconsistente sin que nada falle.
-  - **Resuelto (2026-08-20)**: FR-024 incluye "archivo modificado o truncado mientras se lo leía" entre las causas de falla.
+  - **Resuelto (2026-08-20)**: FR-031 incluye "archivo modificado o truncado mientras se lo leía" entre las causas de falla.
 - [x] CHK032 ¿Está definido en un requerimiento, y no solo en un caso borde, que un archivo con solo encabezado deja el período importado con cero registros? [Completeness, Spec §Edge Cases]
   - **No pasa**: que un archivo con solo encabezado deje el período importado con cero registros está solo en un caso borde. Es una regla con consecuencia directa sobre el cálculo y debería ser normativa.
-  - **Resuelto (2026-08-20)**: FR-023 eleva a requerimiento que un archivo con encabezado válido y ninguna línea de datos se registre como importación exitosa con cantidad 0 y deje el período importado.
-- [x] CHK033 ¿Está definido el comportamiento cuando la ruta indicada existe dentro del directorio de importación pero apunta a un directorio en lugar de a un archivo? [Gap, Spec §FR-013, §FR-016]
-  - **No pasa**: una ruta que apunta a un directorio no es "archivo inexistente" ni "ilegible": no encaja en ninguna de las causas de falla de FR-024.
-  - **Resuelto (2026-08-20)**: FR-024 incluye "ruta que apunta a un directorio y no a un archivo" entre las causas de falla.
+  - **Resuelto (2026-08-20)**: FR-030 eleva a requerimiento que un archivo con encabezado válido y ninguna línea de datos se registre como importación exitosa con cantidad 0 y deje el período importado.
+- [x] CHK033 ¿Está definido el comportamiento cuando la ruta indicada existe dentro del directorio de importación pero apunta a un directorio en lugar de a un archivo? [Gap, Spec §FR-020, §FR-023]
+  - **No pasa**: una ruta que apunta a un directorio no es "archivo inexistente" ni "ilegible": no encaja en ninguna de las causas de falla de FR-031.
+  - **Resuelto (2026-08-20)**: FR-031 incluye "ruta que apunta a un directorio y no a un archivo" entre las causas de falla.
 
 ## Dependencies & Assumptions
 
 - [x] CHK034 ¿Está validado el supuesto de que existe un único directorio de importación y que el Administrador cuenta con los medios para dejar el archivo ahí, dado que el sistema no recibe archivos por carga desde el navegador? [Assumption, Spec §Assumptions]
   - **Pasa**: Los supuestos "Directorio de importación configurado" y "El archivo del padrón se obtiene fuera del sistema" documentan el supuesto y su origen, coherentes con el "Fuera de Alcance" del PRD que descarta la carga por navegador.
-- [x] CHK035 ¿Está documentado qué ocurre si el diseño de registro del Anexo A cambia en el origen —COMARB agrega, quita o reordena columnas— y cómo se detecta ese cambio? [Gap, Assumption, Spec §FR-017]
+- [x] CHK035 ¿Está documentado qué ocurre si el diseño de registro del Anexo A cambia en el origen —COMARB agrega, quita o reordena columnas— y cómo se detecta ese cambio? [Gap, Assumption, Spec §FR-024]
   - **No pasa**: no hay nada sobre un cambio del diseño de registro en el origen ni sobre cómo se detectaría. Se agrava por CHK005: sin validar el encabezado, un reordenamiento de columnas pasa inadvertido.
-  - **Resuelto (2026-08-20)**: FR-018 lo cubre de raíz: validar el encabezado contra los nombres esperados hace que un cambio de columnas en el origen rechace el archivo en vez de pasar inadvertido.
-- [x] CHK036 ¿Está documentada como precondición la dependencia del sistema de archivos del servidor: permiso de lectura sobre el directorio de importación y de escritura sobre el almacenamiento del padrón? [Dependency, Spec §FR-013, §FR-016]
-  - **No pasa**: el permiso de lectura está implícito en "ilegible" de FR-024, pero el permiso de escritura sobre el almacenamiento del padrón no se menciona en ninguna parte.
+  - **Resuelto (2026-08-20)**: FR-025 lo cubre de raíz: validar el encabezado contra los nombres esperados hace que un cambio de columnas en el origen rechace el archivo en vez de pasar inadvertido.
+- [x] CHK036 ¿Está documentada como precondición la dependencia del sistema de archivos del servidor: permiso de lectura sobre el directorio de importación y de escritura sobre el almacenamiento del padrón? [Dependency, Spec §FR-020, §FR-023]
+  - **No pasa**: el permiso de lectura está implícito en "ilegible" de FR-031, pero el permiso de escritura sobre el almacenamiento del padrón no se menciona en ninguna parte.
   - **Resuelto (2026-08-20)**: nuevo supuesto "Permisos del sistema de archivos": lectura sobre el directorio de importación y escritura sobre el almacenamiento del padrón, con la aclaración de que su ausencia se manifiesta como importación fallida.
 
 ## Notes
