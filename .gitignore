@@ -1,0 +1,100 @@
+# ---------------------------------------------------------------------------
+# Compilación de .NET
+# ---------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+*.dll
+*.exe
+*.pdb
+
+# ---------------------------------------------------------------------------
+# Archivos de usuario y de IDE
+# ---------------------------------------------------------------------------
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# ---------------------------------------------------------------------------
+# Tests y cobertura
+# ---------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# ---------------------------------------------------------------------------
+# NuGet
+# ---------------------------------------------------------------------------
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# ---------------------------------------------------------------------------
+# Secretos y configuración local
+#
+# El Principio VI de la constitución prohíbe versionar cadenas de conexión,
+# contraseñas y tokens, incluso como valor de ejemplo o de fallback. Los
+# secretos van en variables de entorno o en `dotnet user-secrets`, que se
+# guardan fuera del repositorio.
+#
+# appsettings.json SÍ se versiona (no debe contener secretos).
+# appsettings.Development.json NO, porque es donde termina la cadena de
+# conexión a la instancia local de SQL Server.
+# ---------------------------------------------------------------------------
+appsettings.Development.json
+appsettings.*.Local.json
+*.local.json
+secrets.json
+.env
+.env.*
+
+# ---------------------------------------------------------------------------
+# Base de datos local de SQL Server
+# ---------------------------------------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+
+# ---------------------------------------------------------------------------
+# Datos del padrón
+#
+# Dos cosas que nunca se versionan:
+#
+# 1. El .txt mensual descargado del Portal Federal Tributario, que el
+#    Administrador deja en el directorio de importación configurado. Un padrón
+#    real ronda el millón de registros y es dato de contribuyentes.
+# 2. El archivo binario de ancho fijo que el sistema genera al importar, que es
+#    un artefacto derivado y se reconstruye reimportando.
+#
+# Las rutas concretas las fija el plan de la feature. Estos patrones cubren las
+# ubicaciones previsibles; ajustarlos cuando el plan las defina.
+#
+# Los ejemplos chicos de padrón usados como fixtures de test NO se ignoran:
+# viven dentro del proyecto de tests y se versionan a propósito.
+# ---------------------------------------------------------------------------
+/padrones/
+/data/
+**/importacion-padron/
+*.padron
+*.padron.bin
+
+# ---------------------------------------------------------------------------
+# Sistema operativo
+# ---------------------------------------------------------------------------
+Thumbs.db
+desktop.ini
+.DS_Store
