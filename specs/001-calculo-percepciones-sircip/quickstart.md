@@ -13,6 +13,12 @@ Guía para levantar el sistema y verificar de punta a punta que la feature funci
 - Dos directorios en el disco del servidor, **en el mismo volumen** (el renombrado atómico de `research.md` D-04 lo exige):
   - directorio de importación, donde el Administrador deja los `.txt` del padrón
   - directorio de datos del padrón, donde el sistema escribe los `.bin`
+
+  En este equipo van en el **filesystem nativo de WSL**, no bajo `/mnt/c` — ver "Equipo de referencia" más abajo para el porqué:
+
+  ```bash
+  mkdir -p ~/sircip/importacion ~/sircip/padron
+  ```
 - Certificado de desarrollo para HTTPS: `dotnet dev-certs https --trust`. El canal cifrado es obligatorio (FR-019 / RNF-06) y un pedido por HTTP se rechaza sin procesar.
 
 ---
@@ -25,8 +31,8 @@ Ningún secreto va en archivos versionados (Principio VI). En desarrollo se usa 
 dotnet restore
 
 dotnet user-secrets --project Sircip.Server set "ConnectionStrings:Sircip" "Server=localhost;Database=Sircip;Trusted_Connection=True;TrustServerCertificate=True"
-dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioImportacion" "/ruta/al/directorio/de/importacion"
-dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioPadron"      "/ruta/al/directorio/de/padrones"
+dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioImportacion" "$HOME/sircip/importacion"
+dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioPadron"      "$HOME/sircip/padron"
 dotnet user-secrets --project Sircip.Server set "Sircip:FactorCostoBcrypt"     "12"
 
 dotnet user-secrets --project Sircip.Client set "Sircip:ApiBaseUrl" "https://localhost:7001"
@@ -175,14 +181,28 @@ Sin esta tabla, "el equipo de desarrollo en uso" no identifica ninguna máquina,
 | Núcleos visibles | 12 |
 | RAM visible | 11,5 GB |
 | Entorno | WSL2 sobre Windows (kernel 6.6.87.2-microsoft-standard-WSL2) |
-| Almacenamiento | *(a completar: modelo de SSD y si los directorios de importación y de padrón están en `/mnt/c` o en el sistema de archivos de WSL)* |
+| Disco | WDC WDS480G2G0C-00AJM0 — SSD NVMe de 447 GB |
+| **Ubicación de los directorios** | **filesystem nativo de WSL (ext4), no `/mnt/c`** |
 
 CPU, núcleos y RAM se midieron **desde WSL2**, que ve una porción de la máquina anfitriona: la RAM real del host es típicamente el doble de la que figura acá.
 
-Dos advertencias para que la medición sea comparable entre corridas:
+#### Por qué los directorios van en ext4 y no en `/mnt/c`
 
-- **Dónde viven los directorios cambia el resultado de forma drástica.** El acceso a `/mnt/c` atraviesa la capa de interoperabilidad de WSL y es mucho más lento que el sistema de archivos nativo de WSL. Los 60 s de FR-051 se miden con ambos directorios en el mismo lugar, y hay que anotar cuál.
-- Si los tests se corren desde Windows en lugar de WSL, los números **no** son comparables con esta tabla y hay que registrar una segunda fila.
+`/mnt/c` se monta por **9p**, la capa de interoperabilidad entre WSL y Windows, y cada operación de archivo paga ese peaje. Medido sobre este equipo con un `.txt` de 100 MB y un `.bin` de 24 MB, con caché caliente:
+
+| Operación | ext4 (WSL) | 9p (`/mnt/c`) | Penalidad |
+|---|---|---|---|
+| Leer el `.txt` secuencial | 0,01 s | 0,53 s | 47× |
+| Escribir el `.bin` | 0,05 s | 0,20 s | 4× |
+| 2.000 sondas sobre el mapeo | ~0,00 s | 0,17 s | 97× |
+
+**La penalidad es real pero no amenaza ninguno de los dos límites.** En términos absolutos, la E/S de una importación completa pasa de ~0,06 s a ~0,73 s: contra 60 segundos, las dos son ruido. El costo dominante de FR-051 es el **parseo de 1.000.000 de líneas en CPU**, no el disco. Y una búsqueda de CUIT son ~20 fallos de página, unos 1,7 ms sobre 9p, contra un presupuesto de 2 s.
+
+El motivo de fondo para elegir ext4 no es la velocidad sino la **semántica de archivos**: el diseño depende de renombrado atómico, de `MemoryMappedFile` y de `FileShare.Delete` (research D-02, D-04), y esas garantías son más firmes en ext4 que a través de 9p. La velocidad es un beneficio adicional, que además deja margen para cuando el padrón crezca por encima del millón de registros.
+
+Los dos directorios —importación y padrón— MUST estar en el **mismo volumen**, porque D-04 depende del renombrado atómico. Separarlos rompe la publicación del padrón, no la hace lenta.
+
+**Si la aplicación se corre desde Windows en lugar de WSL**, no hay 9p de por medio: los directorios estarían sobre NTFS nativo y esta tabla no aplica. En ese caso hay que registrar una segunda fila con sus propios números.
 
 Actualizar esta tabla cuando cambie el equipo, en el mismo commit que la primera corrida que dé números distintos.
 
