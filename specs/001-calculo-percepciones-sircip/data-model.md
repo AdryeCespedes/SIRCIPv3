@@ -46,7 +46,7 @@ Deriva de "Key Entities" del spec. El modelo vive en tres lugares distintos seg�
 4. El usuario existe y `Habilitado = 1` (FR-009).
 5. `Usuarios.Rol == Sesiones.RolAlEmitir` (FR-009).
 
-Si pasa las cinco, `UltimaActividadUtc` se actualiza a `ahoraUtc` **antes** de evaluar el rol que exige el endpoint: un pedido rechazado por permisos insuficientes no reinicia el plazo, pero tampoco lo hace uno rechazado por falta de sesión, porque en ese caso no hay fila que actualizar (FR-004).
+Si pasa las cinco, se evalúa el rol que exige el endpoint, y `UltimaActividadUtc` se actualiza a `ahoraUtc` **después** de que ese chequeo también pasa. El orden importa: ni un pedido rechazado por falta de sesión ni uno rechazado por permisos insuficientes reinician el plazo de inactividad; solo lo reinicia un pedido que llega a ejecutarse (FR-004).
 
 No hay expiración absoluta (spec, "Fuera de Alcance") ni límite de sesiones simultáneas por usuario.
 

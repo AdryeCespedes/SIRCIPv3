@@ -110,6 +110,7 @@ Sircip.sln
 
 Sircip.Contracts/                    # DTO compartidos entre la API y la UI
 ├── Authentication/
+├── Errors/                          # RespuestaError y códigos de error comunes
 ├── Padron/
 └── Percepciones/
 
@@ -133,6 +134,7 @@ Sircip.Server/                       # Web API
 │   │                                #   SetAlicuotas, TablaJurisdicciones
 │   ├── Validations/
 │   └── Exceptions/
+├── Configuration/                   # OpcionesSircip y su validación al arranque
 ├── Data/                            # SircipDbContext, Migrations/, SeedUsuarioInicial
 ├── Endpoints/                       # mapeo de los 6 endpoints + filtro de sesión y rol
 └── Program.cs

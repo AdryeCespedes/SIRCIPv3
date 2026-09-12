@@ -66,8 +66,10 @@ Antes de ejecutar cualquier handler autenticado, en este orden:
 4. `ahoraUtc - UltimaActividadUtc > 24 h` → **401** (FR-004, AC-29).
 5. Usuario inexistente o `Habilitado = 0` → **401** (FR-009).
 6. `Usuarios.Rol != Sesiones.RolAlEmitir` → **401**, y la sesión se cierra (FR-009).
-7. Se actualiza `UltimaActividadUtc = ahoraUtc`. **Este paso ocurre antes de evaluar el rol del endpoint**: un pedido denegado por permisos no reinicia el plazo, pero tampoco lo reinicia uno rechazado en los pasos 1–6, porque ahí no hay sesión válida que actualizar (FR-004).
-8. Se compara el rol del usuario con el que declara el endpoint. Insuficiente → **403** (FR-006, FR-010).
+7. Se compara el rol del usuario con el que declara el endpoint. Insuficiente → **403**, **sin actualizar la marca de actividad** (FR-006, FR-010).
+8. Se actualiza `UltimaActividadUtc = ahoraUtc` y se ejecuta el handler.
+
+**El orden de los pasos 7 y 8 es parte del contrato.** La marca de actividad se actualiza **después** de que el rol pasa, nunca antes: ni un 401 de los pasos 1–6 ni un 403 del paso 7 reinician el plazo de inactividad, y solo lo reinicia un pedido que llega a ejecutarse (FR-004). Actualizarla antes del chequeo de rol permitiría que un Usuario mantuviera su sesión viva indefinidamente pegándole una vez por día a un endpoint de Administrador y juntando 403s.
 
 **Cuerpo del 401**:
 

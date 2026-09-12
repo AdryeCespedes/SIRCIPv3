@@ -158,7 +158,7 @@ En cada request autenticado: se busca la sesión por el hash del token; se recha
 
 - FR-009 exige invalidar de inmediato ante un cambio de rol o una baja de usuario, y esos cambios se hacen **editando la base a mano** (no hay pantalla de alta): la aplicación no recibe ningún evento al que engancharse. Releer usuario y rol en cada request es la única forma de cumplirlo, y hace el requerimiento directamente testeable.
 - Por eso mismo queda descartado cualquier token autocontenido tipo JWT: un JWT firmado sigue siendo válido hasta expirar y no puede revocarse sin, justamente, un registro de sesiones del lado del servidor.
-- La ventana deslizante de FR-004 sale naturalmente de `ultimaActividad`, y la regla "un pedido rechazado por falta de sesión o por permisos no reinicia el plazo" se implementa actualizando la marca **solo** cuando la verificación de autenticación pasa —antes de evaluar el rol requerido del endpoint—.
+- La ventana deslizante de FR-004 sale naturalmente de `ultimaActividad`, y la regla "un pedido rechazado por falta de sesión o por permisos no reinicia el plazo" se implementa actualizando la marca **solo cuando el pedido llega a ejecutarse**, es decir después de que pasan tanto la verificación de autenticación como el chequeo del rol que exige el endpoint. Actualizarla antes del chequeo de rol dejaría que un 403 renovara la sesión, que es justamente lo que FR-004 prohíbe.
 - Guardar el hash y no el token es costo cero (una llamada a SHA-256 por request) y evita que una copia de la base entregue sesiones activas.
 - No hay expiración absoluta, según el "Fuera de Alcance" del spec.
 

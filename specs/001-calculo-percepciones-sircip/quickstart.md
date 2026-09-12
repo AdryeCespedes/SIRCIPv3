@@ -165,6 +165,27 @@ dotnet test Sircip.Test --filter "Categoria=Rendimiento"
 
 Ambos límites son exigibles sobre el equipo de desarrollo en uso con almacenamiento de estado sólido. **Un despliegue en hardware distinto obliga a revalidarlos**: el spec no los declara independientes del entorno.
 
+### Equipo de referencia
+
+Sin esta tabla, "el equipo de desarrollo en uso" no identifica ninguna máquina, y dentro de seis meses un test de importación que tarde 70 s no se puede distinguir entre una regresión real y una notebook más lenta.
+
+| | |
+|---|---|
+| CPU | 13th Gen Intel Core i7-1355U |
+| Núcleos visibles | 12 |
+| RAM visible | 11,5 GB |
+| Entorno | WSL2 sobre Windows (kernel 6.6.87.2-microsoft-standard-WSL2) |
+| Almacenamiento | *(a completar: modelo de SSD y si los directorios de importación y de padrón están en `/mnt/c` o en el sistema de archivos de WSL)* |
+
+CPU, núcleos y RAM se midieron **desde WSL2**, que ve una porción de la máquina anfitriona: la RAM real del host es típicamente el doble de la que figura acá.
+
+Dos advertencias para que la medición sea comparable entre corridas:
+
+- **Dónde viven los directorios cambia el resultado de forma drástica.** El acceso a `/mnt/c` atraviesa la capa de interoperabilidad de WSL y es mucho más lento que el sistema de archivos nativo de WSL. Los 60 s de FR-051 se miden con ambos directorios en el mismo lugar, y hay que anotar cuál.
+- Si los tests se corren desde Windows en lugar de WSL, los números **no** son comparables con esta tabla y hay que registrar una segunda fila.
+
+Actualizar esta tabla cuando cambie el equipo, en el mismo commit que la primera corrida que dé números distintos.
+
 ---
 
 ## Verificación de las puertas de calidad
