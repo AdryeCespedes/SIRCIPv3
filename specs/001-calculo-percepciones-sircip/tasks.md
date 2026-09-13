@@ -254,11 +254,11 @@ Dentro de cada área funcional se separa por tipo: `Models/`, `Services/`, `Vali
 
 **Purpose**: verificar las ocho puertas de calidad de la constitución sobre el sistema completo.
 
-- [ ] T107 [P] Verificar que los 32 AC del PRD (AC-01 a AC-32) tengan al menos un test, recorriendo la tabla de cobertura de `plan.md` contra los tests reales de `Sircip.Test` (Principio I)
-- [ ] T108 [P] Verificar que ningún archivo versionado contiene cadenas de conexión, contraseñas ni tokens, ni siquiera de ejemplo o como fallback, y que los mensajes de error y los logs no exponen secretos ni rutas absolutas del servidor (Principio VI)
-- [ ] T109 Correr `dotnet build Sircip.sln` y confirmar **cero warnings**, sin `#pragma warning disable`, `<NoWarn>` ni `SuppressMessage` en el árbol
-- [ ] T110 Correr `dotnet test Sircip.Test` completo, incluida la categoría Rendimiento, y confirmar que los límites de FR-051 y FR-052 siguen dentro de rango
-- [ ] T111 Recorrer los escenarios V1 a V6 de `quickstart.md` de punta a punta sobre el sistema levantado
+- [X] T107 [P] Verificar que los 32 AC del PRD (AC-01 a AC-32) tengan al menos un test, recorriendo la tabla de cobertura de `plan.md` contra los tests reales de `Sircip.Test` (Principio I)
+- [X] T108 [P] Verificar que ningún archivo versionado contiene cadenas de conexión, contraseñas ni tokens, ni siquiera de ejemplo o como fallback, y que los mensajes de error y los logs no exponen secretos ni rutas absolutas del servidor (Principio VI)
+- [X] T109 Correr `dotnet build Sircip.sln` y confirmar **cero warnings**, sin `#pragma warning disable`, `<NoWarn>` ni `SuppressMessage` en el árbol
+- [X] T110 Correr `dotnet test Sircip.Test` completo, incluida la categoría Rendimiento, y confirmar que los límites de FR-051 y FR-052 siguen dentro de rango
+- [X] T111 Recorrer los escenarios V1 a V6 de `quickstart.md` de punta a punta sobre el sistema levantado
 
 ---
 

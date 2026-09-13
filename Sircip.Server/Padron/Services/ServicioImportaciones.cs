@@ -102,7 +102,13 @@ public sealed class ServicioImportaciones
         }
         catch (Exception excepcion) when (excepcion is IOException or UnauthorizedAccessException)
         {
-            registro.LogWarning(excepcion, "No se pudo borrar el archivo del padrón dado de baja del período {Periodo}.", periodo);
+            // Solo el tipo y el código del error: el mensaje de estas excepciones trae la ruta
+            // absoluta del servidor, que no debe quedar en los logs (Principio VI).
+            registro.LogWarning(
+                "No se pudo borrar el archivo del padrón dado de baja del período {Periodo}: {TipoError} (HResult {HResult}).",
+                periodo,
+                excepcion.GetType().Name,
+                excepcion.HResult);
         }
 
         return true;
