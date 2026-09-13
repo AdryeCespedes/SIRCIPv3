@@ -36,6 +36,27 @@ public class PantallaIngresoTests : IClassFixture<FabricaCliente>
     }
 
     [Fact]
+    public async Task Despues_del_aviso_de_sesion_terminada_se_puede_ingresar_de_nuevo()
+    {
+        var cliente = await fabrica.CrearClienteConSesionAsync(FabricaCliente.UsuarioAdministrador);
+
+        // Una pantalla recibió un 401 de la API y llevó al ingreso con el aviso, todavía con la cookie
+        // de la sesión que terminó (FR-016).
+        var pantalla = await FabricaCliente.ObtenerPantallaAsync(cliente, "/ingreso?sesionTerminada=true");
+
+        Assert.Contains("Tu sesi", pantalla);
+
+        // Sin la navegación de la sesión que ya terminó.
+        Assert.DoesNotContain("action=\"salir\"", pantalla);
+
+        // El formulario de esa misma página, como lo envía el navegador.
+        var respuesta = await FabricaCliente.EnviarFormularioDeIngresoAsync(cliente, pantalla, FabricaCliente.UsuarioAdministrador);
+
+        Assert.Equal(HttpStatusCode.Redirect, respuesta.StatusCode);
+        Assert.Equal("/", FabricaCliente.RutaDeRedireccion(respuesta));
+    }
+
+    [Fact]
     public async Task Si_la_API_no_responde_al_ingreso_la_pantalla_informa_que_no_pudo_confirmarse()
     {
         var respuesta = await FabricaCliente.EnviarIngresoAsync(fabrica.CrearClienteSinRedirecciones(), FabricaCliente.UsuarioSinRespuestaAlIngreso);
