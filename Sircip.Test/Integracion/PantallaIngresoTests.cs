@@ -1,11 +1,8 @@
 using System.Net;
-using System.Text.RegularExpressions;
 
 namespace Sircip.Test.Integracion;
 
-// La pantalla de ingreso enviada tal como la envía un navegador: con todos los campos del
-// formulario, ocultos incluidos y con sus repeticiones. Un cliente HTTP que arma el cuerpo a mano
-// y descarta los campos repetidos deja pasar un formulario que en el navegador no funciona.
+// La pantalla de ingreso, con el formulario enviado tal como lo envía un navegador.
 public class PantallaIngresoTests : IClassFixture<FabricaCliente>
 {
     private readonly FabricaCliente fabrica;
@@ -18,10 +15,7 @@ public class PantallaIngresoTests : IClassFixture<FabricaCliente>
     [Fact]
     public async Task El_formulario_de_ingreso_enviado_como_lo_hace_un_navegador_pasa_la_validacion_antiforgery()
     {
-        var cliente = fabrica.CreateClient();
-        var pantalla = await cliente.GetStringAsync("/ingreso");
-
-        var respuesta = await cliente.PostAsync("/ingreso", new FormUrlEncodedContent(CamposDelFormulario(pantalla, "ana", "Clave-Segura-1")));
+        var respuesta = await FabricaCliente.EnviarIngresoAsync(fabrica.CrearClienteSinRedirecciones(), "desconocido");
 
         // Con la validación antiforgery fallida, la respuesta es un 400 que no llega a la pantalla.
         Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
@@ -30,32 +24,24 @@ public class PantallaIngresoTests : IClassFixture<FabricaCliente>
         Assert.Matches("<p class=\"error\" role=\"alert\">Usuario o contrase", await respuesta.Content.ReadAsStringAsync());
     }
 
-    // Todos los campos del primer formulario, en orden y con sus repeticiones, como los envía un
-    // navegador; el usuario y la contraseña se completan con los valores indicados.
-    private static List<KeyValuePair<string, string>> CamposDelFormulario(string html, string usuario, string contrasena)
+    [Fact]
+    public async Task Un_ingreso_aceptado_por_la_API_abre_la_sesion_y_lleva_a_la_pantalla_de_calculo()
     {
-        var formulario = Regex.Match(html, "<form[^>]*>(.*?)</form>", RegexOptions.Singleline).Groups[1].Value;
+        var respuesta = await FabricaCliente.EnviarIngresoAsync(fabrica.CrearClienteSinRedirecciones(), FabricaCliente.UsuarioAdministrador);
 
-        var campos = new List<KeyValuePair<string, string>>();
-        foreach (Match etiqueta in Regex.Matches(formulario, "<input[^>]*>"))
-        {
-            var nombre = Regex.Match(etiqueta.Value, "name=\"([^\"]*)\"");
-            if (!nombre.Success)
-            {
-                continue;
-            }
+        // Los dos roles llegan a la pantalla de cálculo (FR-012).
+        Assert.Equal(HttpStatusCode.Redirect, respuesta.StatusCode);
+        Assert.Equal("/", FabricaCliente.RutaDeRedireccion(respuesta));
+        Assert.Contains(respuesta.Headers.GetValues("Set-Cookie"), cookie => cookie.StartsWith("Sircip.Sesion=", StringComparison.Ordinal));
+    }
 
-            var clave = WebUtility.HtmlDecode(nombre.Groups[1].Value);
-            var valor = clave switch
-            {
-                "Modelo.Usuario" => usuario,
-                "Modelo.Contrasena" => contrasena,
-                _ => WebUtility.HtmlDecode(Regex.Match(etiqueta.Value, "value=\"([^\"]*)\"").Groups[1].Value),
-            };
+    [Fact]
+    public async Task Si_la_API_no_responde_al_ingreso_la_pantalla_informa_que_no_pudo_confirmarse()
+    {
+        var respuesta = await FabricaCliente.EnviarIngresoAsync(fabrica.CrearClienteSinRedirecciones(), FabricaCliente.UsuarioSinRespuestaAlIngreso);
 
-            campos.Add(new KeyValuePair<string, string>(clave, valor));
-        }
-
-        return campos;
+        // Ni éxito ni rechazo de credenciales: la operación no pudo confirmarse (FR-018).
+        Assert.Equal(HttpStatusCode.OK, respuesta.StatusCode);
+        Assert.Matches("<p class=\"error\" role=\"alert\">[^<]*no pudo confirmarse", await respuesta.Content.ReadAsStringAsync());
     }
 }

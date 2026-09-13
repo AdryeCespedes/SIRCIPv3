@@ -89,7 +89,7 @@ public sealed class ManejadorRespuestas
 
     // Conexión rechazada o caída, respuesta cortada a la mitad, cuerpo ilegible, o el plazo del
     // HttpClient vencido. Una cancelación pedida por quien llama no es un corte.
-    private static bool EsCorteDeComunicacion(Exception excepcion, CancellationToken cancelacion) => excepcion switch
+    public static bool EsCorteDeComunicacion(Exception excepcion, CancellationToken cancelacion) => excepcion switch
     {
         HttpRequestException or IOException or JsonException => true,
         TaskCanceledException => !cancelacion.IsCancellationRequested,

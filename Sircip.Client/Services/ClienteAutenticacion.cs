@@ -16,32 +16,32 @@ public sealed class ClienteAutenticacion
 
     public async Task<ResultadoIngreso> IngresarAsync(PedidoIngreso pedido, CancellationToken cancelacion = default)
     {
-        HttpResponseMessage respuesta;
         try
         {
-            respuesta = await http.PostAsJsonAsync("api/autenticacion/ingreso", pedido, cancelacion);
+            using var respuesta = await http.PostAsJsonAsync("api/autenticacion/ingreso", pedido, cancelacion);
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var cuerpo = await respuesta.Content.ReadFromJsonAsync<RespuestaIngreso>(cancelacion);
+                return cuerpo is null
+                    ? ResultadoIngreso.Fallido(ManejadorRespuestas.MensajeSinConfirmacion)
+                    : ResultadoIngreso.Exitoso(cuerpo);
+            }
+
+            // Mensaje genérico: no distingue usuario inexistente de contraseña incorrecta (FR-001).
+            if (respuesta.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ResultadoIngreso.Fallido("Usuario o contraseña incorrectos.");
+            }
+
+            var error = await ManejadorRespuestas.LeerErrorAsync(respuesta, cancelacion);
+            return ResultadoIngreso.Fallido(error?.Detalle ?? "No se pudo ingresar.", error?.Errores);
         }
-        catch (HttpRequestException)
+        catch (Exception excepcion) when (ManejadorRespuestas.EsCorteDeComunicacion(excepcion, cancelacion))
         {
+            // Conexión caída, respuesta cortada o plazo vencido: el ingreso no pudo confirmarse (FR-018).
             return ResultadoIngreso.Fallido(ManejadorRespuestas.MensajeSinConfirmacion);
         }
-
-        if (respuesta.IsSuccessStatusCode)
-        {
-            var cuerpo = await respuesta.Content.ReadFromJsonAsync<RespuestaIngreso>(cancelacion);
-            return cuerpo is null
-                ? ResultadoIngreso.Fallido(ManejadorRespuestas.MensajeSinConfirmacion)
-                : ResultadoIngreso.Exitoso(cuerpo);
-        }
-
-        // Mensaje genérico: no distingue usuario inexistente de contraseña incorrecta (FR-001).
-        if (respuesta.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            return ResultadoIngreso.Fallido("Usuario o contraseña incorrectos.");
-        }
-
-        var error = await ManejadorRespuestas.LeerErrorAsync(respuesta, cancelacion);
-        return ResultadoIngreso.Fallido(error?.Detalle ?? "No se pudo ingresar.", error?.Errores);
     }
 
     // Cierra la sesión en la API. Si la API no responde, la cookie se descarta igual y la
@@ -55,7 +55,7 @@ public sealed class ClienteAutenticacion
         {
             using var respuesta = await http.SendAsync(pedido, cancelacion);
         }
-        catch (HttpRequestException)
+        catch (Exception excepcion) when (ManejadorRespuestas.EsCorteDeComunicacion(excepcion, cancelacion))
         {
         }
     }
