@@ -31,7 +31,7 @@ Guía para levantar el sistema y verificar de punta a punta que la feature funci
   ```bash
   mkdir -p ~/sircip/importacion ~/sircip/padron
   ```
-- Certificado de desarrollo para HTTPS. El canal cifrado es obligatorio (FR-019 / RNF-06) y un pedido por HTTP se rechaza sin procesar. Los **tests no lo necesitan** —`WebApplicationFactory` corre en memoria, sin TLS—, pero **levantar la aplicación a mano sí** (§3 y escenarios V1–V6). Como el navegador corre en Windows y el `HttpClient` de `Sircip.Client` hacia `Sircip.Server` corre en WSL, los dos lados tienen que confiar en **el mismo** certificado; `dotnet dev-certs https --check --trust` en cada lado muestra cuál tiene. En Linux, `dotnet dev-certs https --trust` requiere `sudo`.
+- Certificado de desarrollo para HTTPS. El canal cifrado es obligatorio (FR-019 / RNF-06) y un pedido por HTTP se rechaza sin procesar. Los **tests no lo necesitan** —`WebApplicationFactory` corre en memoria, sin TLS—, pero **levantar la aplicación a mano sí** (§3 y escenarios V1–V6). El navegador corre en Windows y el `HttpClient` de `Sircip.Client` hacia `Sircip.Server` corre en WSL: **los dos lados tienen que confiar en el certificado que usa Kestrel en WSL**. Los pasos están en §3.
 
 ---
 
@@ -78,19 +78,62 @@ dotnet ef database update --project Sircip.Server
 
 # No hay auto-registro: el usuario inicial se crea por seed, con la contraseña
 # tomada de configuración y nunca de un literal en el código.
-dotnet user-secrets --project Sircip.Server set "Sircip:SeedAdmin:Usuario"    "admin"
-dotnet user-secrets --project Sircip.Server set "Sircip:SeedAdmin:Contrasena" "<elegir una>"
-dotnet run --project Sircip.Server -- seed-usuario-inicial
+dotnet user-secrets --project Sircip.Server set "Sircip:SeedAdmin:Usuario" "admin"
+read -rsp "Contraseña del administrador inicial: " ADMINPASS; echo
+dotnet user-secrets --project Sircip.Server set "Sircip:SeedAdmin:Contrasena" "$ADMINPASS"
+unset ADMINPASS
+dotnet run --project Sircip.Server -- seed-usuario-inicial      # informa "Administrador admin creado."
+
+# El hash ya quedó en la base: la contraseña no tiene por qué seguir en la configuración.
+dotnet user-secrets --project Sircip.Server remove "Sircip:SeedAdmin:Contrasena"
 ```
 
 Los usuarios siguientes se dan de alta **manualmente en la base**, con el hash BCrypt ya calculado. No hay pantalla de registración, ni de cambio ni de recuperación de contraseña.
 
+Los escenarios de validación necesitan además un usuario con rol **Usuario**. En desarrollo alcanza con copiar el hash del administrador, de modo que el usuario nuevo queda **con la misma contraseña**. El `sqlcmd.exe` de Windows se invoca directamente desde WSL, con un usuario de Windows que tenga permisos sobre la base:
+
+```bash
+sqlcmd.exe -S localhost -E -C -d Sircip -Q "INSERT INTO Usuarios (NombreUsuario, ContrasenaHash, Rol, Habilitado) SELECT 'facturador', ContrasenaHash, 2, 1 FROM Usuarios WHERE NombreUsuario = 'admin'"
+```
+
 ## 3 · Levantar
+
+### Confianza en el certificado de desarrollo (una sola vez)
+
+Kestrel, en WSL, sirve la API y la aplicación web con el certificado de desarrollo de WSL. Tienen que confiar en él **WSL**, porque `Sircip.Client` llama a la API, y **Windows**, porque ahí corre el navegador.
+
+```bash
+# Exportar el certificado, sin la clave privada
+dotnet dev-certs https -ep ~/aspnet-dev.crt --format PEM
+
+# WSL: agregarlo a los certificados de confianza del sistema
+sudo cp ~/aspnet-dev.crt /usr/local/share/ca-certificates/aspnet-dev.crt
+sudo update-ca-certificates            # debe informar "1 added"
+
+# Windows: agregarlo a las raíces de confianza del usuario; Windows pide confirmarlo en un diálogo
+cp ~/aspnet-dev.crt /mnt/c/Users/Public/aspnet-dev.crt
+certutil.exe -user -addstore Root 'C:\Users\Public\aspnet-dev.crt'
+```
+
+Después hay que cerrar el navegador por completo y volver a abrirlo. Edge y Chrome usan el almacén de Windows; Firefox tiene uno propio. Si el certificado de desarrollo se regenera, estos pasos se repiten.
+
+Sin `sudo`, la alternativa es indicarle al cliente, cada vez que se lo levanta, un archivo de certificados que incluya el de desarrollo:
+
+```bash
+cat /etc/ssl/certs/ca-certificates.crt ~/aspnet-dev.crt > ~/confianza-dev.pem
+SSL_CERT_FILE=~/confianza-dev.pem dotnet run --project Sircip.Client
+```
+
+### Arranque
 
 ```bash
 dotnet run --project Sircip.Server    # Web API   → https://localhost:7001
 dotnet run --project Sircip.Client    # Blazor    → https://localhost:7002
 ```
+
+Con la API corriendo, `curl -s -o /dev/null -w "%{http_code}\n" https://localhost:7001/` confirma la confianza de WSL: `404` indica que el certificado se aceptó y `000`, que no. Con la alternativa de `SSL_CERT_FILE` esta verificación no aplica, porque `curl` no la usa.
+
+La aplicación se abre en **https://localhost:7002/ingreso**.
 
 ## 4 · Build y tests
 
@@ -103,6 +146,8 @@ dotnet test Sircip.Test --filter "Categoria=Rendimiento"    # solo FR-051 y FR-0
 
 Los warnings se arreglan, nunca se silencian: sin `#pragma warning disable`, `<NoWarn>` ni `SuppressMessage`.
 
+Si la API o la aplicación web están corriendo con `dotnet run`, conviene compilar y correr los tests en otro directorio de salida, para no reemplazar binarios en uso: por ejemplo, `dotnet test Sircip.Test --artifacts-path /tmp/sircip-artefactos`.
+
 ---
 
 ## Escenarios de validación
@@ -111,16 +156,18 @@ Cada escenario prueba una historia de punta a punta. Detalle de los contratos en
 
 ### V1 · Ingreso y autorización por rol (US1)
 
-**Precondición**: un Administrador y un Usuario dados de alta; sin padrón importado — esta historia se valida sin él.
+**Precondición**: un Administrador y un Usuario dados de alta (§2); sin padrón importado — esta historia se valida sin él.
 
 1. Ingresar con credenciales válidas → **200** con token, y la navegación lista solo las pantallas del rol. Ambos roles aterrizan en la pantalla de cálculo.
 2. Ingresar con contraseña incorrecta, y después con un usuario inexistente → **401** en ambos casos, **con el mismo mensaje**: no debe poder distinguirse cuál de los dos falló (FR-001).
 3. Pedir un cálculo o una importación sin token → **401** *(AC-01, AC-02)*.
-4. Con rol Usuario, intentar importar, dar de baja un período y abrir el historial → **403** en los tres *(AC-04, AC-05, AC-14, AC-17)*. La navegación tampoco ofrecía esas pantallas.
-5. Cerrar sesión y reintentar una operación autenticada → **401**, sin esperar las 24 h *(AC-31)*.
-6. Cambiar el rol del Administrador a Usuario **en la base** y, con la sesión anterior, intentar importar → **403**: la sesión no conserva los permisos viejos (FR-009).
-7. Inspeccionar `Usuarios.ContrasenaHash` de dos usuarios con la misma contraseña → son hashes, no coinciden con el texto plano, y **difieren entre sí** *(AC-28, SC-005)*.
-8. Enviar un pedido por HTTP en vez de HTTPS → se rechaza sin procesar credenciales ni sesión *(AC-32)*.
+4. Con rol Usuario, intentar importar, dar de baja un período y abrir el historial → **403** en los tres *(AC-04, AC-05, AC-14, AC-17)*. En pantalla, la navegación no ofrece esas funciones, y escribir la dirección de una pantalla de Administrador lleva a la pantalla de cálculo, la de uso diario del rol (FR-012).
+5. Cerrar sesión y reintentar una operación autenticada → **401**, sin esperar las 24 h *(AC-31)*. En pantalla, **Salir** lleva al ingreso, y una pantalla que exige sesión vuelve a pedirla.
+6. Cambiar el rol del Administrador a Usuario **en la base** y, con la sesión anterior, intentar importar → **401**: la sesión queda invalidada y no conserva los permisos viejos (FR-009). En pantalla se informa que la sesión terminó y se lleva al ingreso, desde donde se puede volver a ingresar (FR-016). Deshabilitar al usuario tiene el mismo efecto.
+7. Inspeccionar `Usuarios.ContrasenaHash` de dos usuarios con la misma contraseña → son hashes, no coinciden con el texto plano, y **difieren entre sí** *(AC-28, SC-005)*. Un usuario creado copiando el hash de otro, como en §2, no sirve para este paso.
+8. Enviar un pedido por HTTP en vez de HTTPS → **400** `canal_no_cifrado`, sin procesar credenciales ni sesión *(AC-32)*.
+9. Con la API detenida, ingresar → la pantalla informa que la operación no pudo confirmarse, sin presentarlo como credenciales incorrectas (FR-018).
+10. Con la base de usuarios no disponible, ingresar → **401** con el mismo mensaje genérico de las credenciales incorrectas, sin conceder acceso (FR-002).
 
 > La expiración por inactividad de 24 h *(AC-29)* se verifica en test controlando el reloj, no esperando un día.
 
@@ -139,6 +186,8 @@ Cada escenario prueba una historia de punta a punta. Detalle de los contratos en
 9. Reimportar un período ya importado y no dado de baja → **409**, sin modificar el padrón existente (FR-033).
 10. Importar un archivo con el encabezado válido y **ninguna** línea de datos → **200** con cantidad `0`, y el período queda importado (FR-030).
 11. Alterar el encabezado —quitarlo, renombrar una columna o cambiar el orden— → **422** (FR-025).
+12. Indicar un mes fuera de 1–12 o un año que no tenga 4 dígitos → **400** con el error señalado en el campo, conservando lo ingresado, sin leer el archivo ni generar constancia (FR-020, FR-014).
+13. Durante una importación larga, cortar la comunicación deteniendo `Sircip.Client` → el navegador informa que se interrumpió la comunicación y que la operación no pudo confirmarse; la importación sigue en la API y su constancia queda en el historial (FR-018).
 
 ### V3 · Cálculo de percepciones (US3)
 
@@ -263,9 +312,12 @@ Antes de dar un cambio por terminado, en este orden (constitución, "Flujo de De
 | Toda importación falla por ruta fuera del directorio | `Sircip:DirectorioImportacion` sin configurar o apuntando a otro lado |
 | La importación falla al persistir | falta permiso de escritura sobre `Sircip:DirectorioPadron`, o no hay espacio |
 | El renombrado final de la importación falla | directorio temporal y definitivo en **volúmenes distintos**; deben compartir volumen |
-| Todo pedido responde 401 | pedido por HTTP en lugar de HTTPS (FR-019) |
+| Todo pedido responde 400 `canal_no_cifrado` | pedido por HTTP en lugar de HTTPS (FR-019) |
 | `dotnet ef database update` o los tests de integración dan timeout contra SQL Server | falta `hostAddressLoopback=true` en `.wslconfig`, o WSL se reinició hace instantes: reintentar antes de tocar la configuración |
 | `Login failed for user` desde WSL | se usó `Trusted_Connection=True`, que no funciona desde WSL, o el login `sircip` todavía no existe (§2) |
-| El navegador advierte que el certificado no es válido, o `Sircip.Client` no puede llamar a la API | Windows y WSL confían en certificados de desarrollo distintos; los dos lados tienen que usar el mismo |
+| Al ingresar, la pantalla informa que la operación no pudo confirmarse | la API no está corriendo, o WSL no confía en su certificado: el `curl` de §3 da `000` |
+| El navegador advierte que el certificado no es válido | Windows no confía en el certificado de desarrollo de WSL (§3), o el navegador no se reinició después de importarlo |
 | El cálculo devuelve 404 para un período recién importado | la importación quedó sin constancia — es la autoridad, no el archivo (research D-04) |
-| El ingreso falla con credenciales correctas | `Rol` almacenado fuera de `{1, 2}`, `Habilitado = 0`, o hash con formato inesperado (FR-002) |
+| El ingreso falla con credenciales correctas | `Rol` almacenado fuera de `{1, 2}`, `Habilitado = 0`, hash con formato inesperado, o base de usuarios no disponible (FR-002) |
+| Con rol Usuario, la dirección de una pantalla de Administrador lleva a la de cálculo | comportamiento esperado: el acceso se deniega llevando a la pantalla de uso diario del rol |
+| La consola de la API muestra líneas `fail:` ante un 401, 409 o 422 esperado | el `ExceptionHandlerMiddleware` de .NET 8 registra toda excepción manejada; no indica un error |
