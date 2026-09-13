@@ -46,6 +46,29 @@ public sealed class ServicioImportaciones
             },
             cancelacion);
 
+    // Todas las constancias, de cualquier Administrador, ordenadas por fecha descendente y sin
+    // paginación (FR-035, AC-15, AC-16).
+    public async Task<IReadOnlyList<ConstanciaHistorialRespuesta>> ObtenerHistorialAsync(CancellationToken cancelacion)
+    {
+        var constancias = await contexto.Importaciones
+            .Include(i => i.Usuario)
+            .OrderByDescending(i => i.FechaImportacionUtc)
+            .ToListAsync(cancelacion);
+
+        return constancias.Select(CrearRespuestaHistorial).ToArray();
+    }
+
+    private static ConstanciaHistorialRespuesta CrearRespuestaHistorial(Importacion importacion) => new(
+        importacion.Id,
+        importacion.Periodo,
+        DateTime.SpecifyKind(importacion.FechaImportacionUtc, DateTimeKind.Utc),
+        importacion.Usuario!.NombreUsuario,
+        importacion.Resultado.ToString(),
+        importacion.CantidadRegistros,
+        importacion.DetalleError,
+        DadaDeBaja: importacion.BajaUtc is not null,
+        PuedeDarseDeBaja: importacion.Resultado == ResultadoImportacion.Exitosa && importacion.BajaUtc is null);
+
     public static ConstanciaImportacionRespuesta CrearRespuesta(Importacion importacion, string nombreUsuario) => new(
         importacion.Id,
         importacion.Periodo,

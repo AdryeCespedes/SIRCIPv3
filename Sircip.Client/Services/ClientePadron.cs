@@ -25,4 +25,12 @@ public sealed class ClientePadron
 
         return await manejador.EnviarAsync<ConstanciaImportacionRespuesta>(http, mensaje, cancelacion);
     }
+
+    // El listado no se actualiza solo (FR-035): cada llamada refleja el estado al momento de pedirla.
+    public async Task<ResultadoOperacion<HistorialImportacionesRespuesta>> ObtenerHistorialAsync(CancellationToken cancelacion = default)
+    {
+        using var mensaje = new HttpRequestMessage(HttpMethod.Get, "api/padron/importaciones");
+
+        return await manejador.EnviarAsync<HistorialImportacionesRespuesta>(http, mensaje, cancelacion);
+    }
 }

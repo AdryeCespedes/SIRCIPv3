@@ -17,11 +17,15 @@ public static class EndpointsPadron
                     Results.Ok(await importador.ImportarAsync(pedido ?? new PedidoImportacion(null, null, null), contexto.ObtenerSesion())))
             .RequiereRol(Rol.Administrador);
 
-        // Pendientes de US4 y US5. La declaración de rol ya rige, para que la autorización de
-        // estas funciones sea verificable desde US1.
-        rutas.MapGet("/api/padron/importaciones", NoImplementado)
+        // Sin paginación: el historial crece una constancia por intento (FR-035).
+        rutas.MapGet(
+                "/api/padron/importaciones",
+                async (HttpContext contexto, ServicioImportaciones importaciones) =>
+                    Results.Ok(new HistorialImportacionesRespuesta(await importaciones.ObtenerHistorialAsync(contexto.RequestAborted))))
             .RequiereRol(Rol.Administrador);
 
+        // Pendiente de US5. La declaración de rol ya rige, para que la autorización de esta
+        // función sea verificable desde US1.
         rutas.MapDelete("/api/padron/periodos/{periodo:int}", NoImplementado)
             .RequiereRol(Rol.Administrador);
 

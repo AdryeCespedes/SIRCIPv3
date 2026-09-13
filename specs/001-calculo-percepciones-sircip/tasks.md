@@ -209,17 +209,17 @@ Dentro de cada área funcional se separa por tipo: `Models/`, `Services/`, `Vali
 
 ### Tests for User Story 4 (MANDATORY — Principle I) ⚠️
 
-- [ ] T092 [P] [US4] Tests de integración del historial en `Sircip.Test/Integracion/HistorialTests.cs`: listado con exitosas y fallidas (AC-15); importaciones de **cualquier** Administrador, propias y de terceros (AC-16); orden por fecha descendente; y cada constancia con período, fecha, usuario, resultado, cantidad o error y marca de baja (FR-035)
-- [ ] T093 [P] [US4] Test de integración del historial vacío en `Sircip.Test/Integracion/HistorialVacioTests.cs`: sin constancias registradas se informa explícitamente, de forma **distinguible de una falla al obtener el listado** (FR-035)
-- [ ] T094 [P] [US4] Test de integración de autorización en `Sircip.Test/Integracion/HistorialAutorizacionTests.cs`: rol Administrador → 200 y rol Usuario → 403 sobre `GET /api/padron/importaciones` (AC-17, Principio V)
+- [X] T092 [P] [US4] Tests de integración del historial en `Sircip.Test/Integracion/HistorialTests.cs`: listado con exitosas y fallidas (AC-15); importaciones de **cualquier** Administrador, propias y de terceros (AC-16); orden por fecha descendente; y cada constancia con período, fecha, usuario, resultado, cantidad o error y marca de baja (FR-035)
+- [X] T093 [P] [US4] Test de integración del historial vacío en `Sircip.Test/Integracion/HistorialVacioTests.cs`: sin constancias registradas se informa explícitamente, de forma **distinguible de una falla al obtener el listado** (FR-035)
+- [X] T094 [P] [US4] Test de integración de autorización en `Sircip.Test/Integracion/HistorialAutorizacionTests.cs`: rol Administrador → 200 y rol Usuario → 403 sobre `GET /api/padron/importaciones` (AC-17, Principio V)
 
 ### Implementation for User Story 4
 
-- [ ] T095 [P] [US4] Crear el DTO `HistorialImportacionesRespuesta` con el campo `puedeDarseDeBaja` en `Sircip.Contracts/Padron/`, según `contracts/api-padron.md`
-- [ ] T096 [US4] Agregar la consulta del historial a `Sircip.Server/Padron/Services/ServicioImportaciones.cs`: todas las constancias ordenadas por fecha descendente, sin paginación, con `puedeDarseDeBaja` en true solo para las exitosas no dadas de baja (FR-035; depende de T065)
-- [ ] T097 [US4] Mapear `GET /api/padron/importaciones` con rol Administrador en `Sircip.Server/Endpoints/EndpointsPadron.cs`, reemplazando el stub de T038 (depende de T096)
-- [ ] T098 [P] [US4] Agregar la consulta del historial a `Sircip.Client/Services/ClientePadron.cs`
-- [ ] T099 [US4] Crear la página de historial en `Sircip.Client/Pages/Historial.razor` con los **tres estados distinguibles** —con constancias, sin constancias, y falla al obtener el listado—, el formato de período `mm/aaaa` y fecha `dd/mm/aaaa`, y la recarga manual sin salir de la pantalla; el listado **no se actualiza solo** (FR-035, FR-017; depende de T098)
+- [X] T095 [P] [US4] Crear el DTO `HistorialImportacionesRespuesta` con el campo `puedeDarseDeBaja` en `Sircip.Contracts/Padron/`, según `contracts/api-padron.md`
+- [X] T096 [US4] Agregar la consulta del historial a `Sircip.Server/Padron/Services/ServicioImportaciones.cs`: todas las constancias ordenadas por fecha descendente, sin paginación, con `puedeDarseDeBaja` en true solo para las exitosas no dadas de baja (FR-035; depende de T065)
+- [X] T097 [US4] Mapear `GET /api/padron/importaciones` con rol Administrador en `Sircip.Server/Endpoints/EndpointsPadron.cs`, reemplazando el stub de T038 (depende de T096)
+- [X] T098 [P] [US4] Agregar la consulta del historial a `Sircip.Client/Services/ClientePadron.cs`
+- [X] T099 [US4] Crear la página de historial en `Sircip.Client/Pages/Historial.razor` con los **tres estados distinguibles** —con constancias, sin constancias, y falla al obtener el listado—, el formato de período `mm/aaaa` y fecha `dd/mm/aaaa`, y la recarga manual sin salir de la pantalla; el listado **no se actualiza solo** (FR-035, FR-017; depende de T098)
 
 **Checkpoint**: US1 a US4 funcionan de forma independiente.
 

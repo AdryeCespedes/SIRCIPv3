@@ -1,0 +1,113 @@
+@page "/historial"
+@attribute [Authorize(Roles = "Administrador")]
+@using Sircip.Contracts.Padron
+@inject ClientePadron Padron
+
+@* Historial de importaciones (US4). La autoridad sobre el rol es la API: la declaración de esta
+   página solo evita ofrecer una pantalla que después se denegaría. *@
+
+<PageTitle>Historial de importaciones · SIRCIP</PageTitle>
+
+<h1>Historial de importaciones</h1>
+
+@* No se actualiza solo: refleja el estado al abrir la pantalla o al recargar (FR-035). *@
+<button type="button" @onclick="CargarAsync" disabled="@cargando">Recargar</button>
+
+@switch (estado)
+{
+    case Estado.ConConstancias when constancias is not null:
+        <table>
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Resultado</th>
+                    <th>Registros / error</th>
+                    <th>Baja</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var constancia in constancias)
+                {
+                    <tr>
+                        <td>@FormatoPresentacion.Periodo(constancia.Periodo)</td>
+                        <td>@FormatoPresentacion.Fecha(constancia.FechaImportacionUtc)</td>
+                        <td>@constancia.Usuario</td>
+                        <td>@constancia.Resultado</td>
+                        <td>@(constancia.CantidadRegistros is { } cantidad ? FormatoPresentacion.Cantidad(cantidad) : constancia.DetalleError)</td>
+                        <td>@(constancia.DadaDeBaja ? "Dada de baja" : "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        break;
+
+    case Estado.SinConstancias:
+        <p class="aviso" role="status">Todavía no hay ninguna importación registrada.</p>
+        break;
+
+    case Estado.Falla:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+}
+
+@code {
+    private enum Estado
+    {
+        Ninguno,
+        ConConstancias,
+        SinConstancias,
+        Falla
+    }
+
+    private bool cargando;
+    private Estado estado;
+    private IReadOnlyList<ConstanciaHistorialRespuesta>? constancias;
+    private string? mensaje;
+
+    protected override Task OnInitializedAsync() => CargarAsync();
+
+    private async Task CargarAsync()
+    {
+        if (cargando)
+        {
+            return;
+        }
+
+        cargando = true;
+        try
+        {
+            Presentar(await Padron.ObtenerHistorialAsync());
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void Presentar(ResultadoOperacion<HistorialImportacionesRespuesta> resultado)
+    {
+        switch (resultado.Desenlace)
+        {
+            case DesenlaceOperacion.Exitosa:
+                constancias = resultado.Valor!.Constancias;
+                estado = constancias.Count > 0 ? Estado.ConConstancias : Estado.SinConstancias;
+                break;
+
+            case DesenlaceOperacion.Rechazada:
+                mensaje = resultado.Error!.Detalle;
+                estado = Estado.Falla;
+                break;
+
+            case DesenlaceOperacion.SinConfirmacion:
+                mensaje = ManejadorRespuestas.MensajeSinConfirmacion;
+                estado = Estado.Falla;
+                break;
+
+            // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+            case DesenlaceOperacion.SesionTerminada:
+                break;
+        }
+    }
+}
