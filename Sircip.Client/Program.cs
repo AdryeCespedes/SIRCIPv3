@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Sircip.Client;
 using Sircip.Client.Services;
 
@@ -24,9 +23,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         opciones.SlidingExpiration = true;
     });
 
-// Toda página o endpoint sin declaración explícita exige sesión: se deniega por omisión (FR-010).
-builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+// Toda pantalla exige sesión por el [Authorize] de Pages/_Imports.razor, salvo la de ingreso, que
+// lo levanta de forma explícita (FR-010). No se usa una política de autorización por omisión:
+// alcanzaría también a los archivos del framework, como _framework/blazor.web.js, que la pantalla
+// de ingreso necesita cargar sin sesión.
+builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddScoped<ProveedorEstadoAutenticacion>();
