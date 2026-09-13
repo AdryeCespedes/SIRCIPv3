@@ -4,6 +4,7 @@ using Sircip.Server.Authentication.Services;
 using Sircip.Server.Configuration;
 using Sircip.Server.Data;
 using Sircip.Server.Endpoints;
+using Sircip.Server.Padron.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,10 @@ builder.Services.AddDbContext<SircipDbContext>((proveedor, opciones) =>
 builder.Services.AddSingleton<HasheadorContrasenas>();
 builder.Services.AddScoped<ServicioSesiones>();
 builder.Services.AddScoped<ServicioAutenticacion>();
+
+builder.Services.AddSingleton<ResolutorRutaImportacion>();
+builder.Services.AddScoped<ServicioImportaciones>();
+builder.Services.AddScoped<ImportadorPadron>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ManejadorExcepciones>();

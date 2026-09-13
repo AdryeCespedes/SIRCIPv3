@@ -32,6 +32,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<ProveedorEstadoAutenticacion>();
 builder.Services.AddScoped<ManejadorRespuestas>();
 builder.Services.AddHttpClient<ClienteAutenticacion>(ConfigurarClienteApi);
+builder.Services.AddHttpClient<ClientePadron>(ConfigurarClienteApi);
 
 var app = builder.Build();
 

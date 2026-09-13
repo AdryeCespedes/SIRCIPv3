@@ -120,7 +120,7 @@ Un archivo por período: `{DirectorioPadron}/padron-{aaaamm}.bin`. Formato compl
 
 El **significado** de cada dígito del Campo 7 no se valida al importar: un dígito fuera de 1–5 no invalida el archivo y se resuelve en el cálculo (FR-027, FR-041).
 
-**Unicidad** (FR-029): el CUIT identifica unívocamente a un registro dentro de un período. Dos líneas con el mismo CUIT se aceptan solo si son idénticas en todos sus campos —incluidos los que se descartan—, conservándose una; si difieren en algo, se rechaza la importación completa.
+**Unicidad** (FR-029): el CUIT identifica unívocamente a un registro dentro de un período. Dos líneas con el mismo CUIT se aceptan solo si son idénticas en todos sus campos —incluidos los que se descartan—, conservándose una; si difieren en algo, se rechaza la importación completa. Como la razón social y la jurisdicción sede no llegan al registro de 24 bytes, la importación las compara mediante una huella que existe solo en el archivo temporal (research D-03).
 
 ### Derivada: `EstadoJurisdiccion`
 

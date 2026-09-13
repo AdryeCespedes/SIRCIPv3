@@ -97,10 +97,10 @@ El mapeo se abre por solicitud y se libera al terminarla, con `FileShare.ReadWri
 
 ## Ciclo de vida del archivo
 
-1. **Construcción**: la importación escribe en `padron-{aaaamm}.{guid}.tmp`, en el mismo directorio, un registro por línea validada, a medida que parsea.
+1. **Construcción**: la importación escribe en `padron-{aaaamm}.{guid}.tmp`, en el mismo directorio, un registro temporal de **32 bytes** por línea validada, a medida que parsea: los 24 bytes del registro definitivo seguidos de una huella `UInt64` de la razón social y la jurisdicción sede (research D-03). Los primeros 24 bytes del temporal quedan reservados para el encabezado.
 2. **Ordenamiento**: cerrado el stream, el temporal se mapea y se ordena en el lugar por `Cuit`.
-3. **Deduplicación**: un recorrido lineal sobre el archivo ordenado detecta CUIT adyacentes repetidos. Idénticos byte a byte → se conserva uno y se compacta; divergentes → se rechaza la importación completa (FR-029).
-4. **Cierre**: se escribe el encabezado con la cantidad final y se trunca el archivo a `24 + N * 24`.
+3. **Deduplicación y compactación**: un recorrido lineal sobre el archivo ordenado detecta CUIT adyacentes repetidos. Idénticos en los 32 bytes, huella incluida → se conserva uno; divergentes en cualquier campo, también en uno de los que no se conservan → se rechaza la importación completa (FR-029). En el mismo recorrido, cada registro conservado se reescribe en su posición definitiva de 24 bytes, sin la huella.
+4. **Cierre**: se escribe el encabezado con la cantidad final, se trunca el archivo a `24 + N * 24` y se sincroniza a disco.
 5. **Publicación**: renombrado atómico de `.tmp` a `padron-{aaaamm}.bin`, en el mismo volumen. Un `.bin` huérfano de un intento anterior interrumpido se borra antes del renombrado.
 6. **Constancia**: recién entonces se inserta la fila `Importaciones`. Es la autoridad sobre si el período está importado.
 7. **Baja**: se marca `BajaUtc` en la constancia y se borra el archivo, en la misma operación (FR-034).

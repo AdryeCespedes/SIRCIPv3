@@ -1,0 +1,228 @@
+@page "/importacion"
+@attribute [Authorize(Roles = "Administrador")]
+@using Sircip.Contracts.Errors
+@using Sircip.Contracts.Padron
+@inject ClientePadron Padron
+
+@* Importación del padrón de un período (US2). La autoridad sobre el rol es la API: la
+   declaración de esta página solo evita ofrecer una pantalla que después se denegaría. *@
+
+<PageTitle>Importación del padrón · SIRCIP</PageTitle>
+
+<h1>Importación del padrón</h1>
+
+<p>
+    Dejá el archivo del padrón en el directorio de importación del servidor e indicá su ruta
+    relativa a ese directorio, junto con el mes y el año del período.
+</p>
+
+<EditForm Model="modelo" OnSubmit="ImportarAsync" FormName="importacion">
+    <div class="campo">
+        <label for="rutaRelativa">Ruta del archivo</label>
+        <InputText id="rutaRelativa" @bind-Value="modelo.RutaRelativa" placeholder="padron-202603.txt" />
+        @if (ErrorDe("rutaRelativa") is { } errorRuta)
+        {
+            <span class="error-campo">@errorRuta</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="mes">Mes</label>
+        <InputNumber id="mes" @bind-Value="modelo.Mes" min="1" max="12" />
+        @if (ErrorDe("mes") is { } errorMes)
+        {
+            <span class="error-campo">@errorMes</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="anio">Año</label>
+        <InputNumber id="anio" @bind-Value="modelo.Anio" />
+        @if (ErrorDe("anio") is { } errorAnio)
+        {
+            <span class="error-campo">@errorAnio</span>
+        }
+    </div>
+
+    @* Deshabilitado mientras corre, para que no salga un segundo pedido desde esta pantalla (FR-022). *@
+    <button type="submit" disabled="@enCurso">Importar</button>
+</EditForm>
+
+<p class="nota">
+    El botón Importar se deshabilita mientras una importación corre, para evitar un segundo envío
+    desde esta pantalla. No impide que otra pantalla u otra sesión importe el mismo período al
+    mismo tiempo.
+</p>
+
+@if (enCurso)
+{
+    @* Sin avance parcial: la importación no lo informa (spec, "Fuera de Alcance"). *@
+    <p class="aviso" role="status">
+        La importación está en curso. La espera puede llegar a 60 segundos. Si salís de esta
+        pantalla, la importación sigue en el servidor y su resultado queda en el historial.
+    </p>
+}
+
+@switch (desenlace)
+{
+    case Desenlace.Importado when constancia is not null:
+        <section class="constancia" role="status">
+            <h2>Padrón importado</h2>
+            <dl>
+                <dt>Período</dt>
+                <dd>@FormatoPresentacion.Periodo(constancia.Periodo)</dd>
+                <dt>Fecha de importación</dt>
+                <dd>@FormatoPresentacion.Fecha(constancia.FechaImportacionUtc)</dd>
+                <dt>Usuario</dt>
+                <dd>@constancia.Usuario</dd>
+                <dt>Registros incorporados</dt>
+                <dd>@FormatoPresentacion.Cantidad(constancia.CantidadRegistros ?? 0)</dd>
+            </dl>
+        </section>
+        break;
+
+    case Desenlace.Fallido:
+        <section class="error" role="alert">
+            <h2>La importación falló</h2>
+            <p>@mensaje</p>
+            <p>
+                No se incorporó ningún registro del período. La constancia de este intento quedó en el
+                <a href="historial">historial de importaciones</a>.
+            </p>
+        </section>
+        break;
+
+    case Desenlace.PeriodoYaImportado:
+        <section class="error" role="alert">
+            <h2>El período ya está importado</h2>
+            <p>@mensaje</p>
+            <p>La baja de un período se hace desde el <a href="historial">historial de importaciones</a>.</p>
+        </section>
+        break;
+
+    case Desenlace.SinConfirmacion:
+        @* Ni éxito ni falla: la importación pudo seguir en el servidor, y la verdad queda en el historial (FR-018). *@
+        <section class="aviso" role="alert">
+            <h2>La importación no pudo confirmarse</h2>
+            <p>@ManejadorRespuestas.MensajeSinConfirmacion</p>
+            <p>
+                La importación puede haber seguido corriendo en el servidor. Antes de volver a intentarla,
+                consultá su resultado en el <a href="historial">historial de importaciones</a>.
+            </p>
+        </section>
+        break;
+
+    case Desenlace.Rechazado:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+}
+
+@code {
+    private enum Desenlace
+    {
+        Ninguno,
+        Importado,
+        Fallido,
+        PeriodoYaImportado,
+        Rechazado,
+        SinConfirmacion
+    }
+
+    // Los datos ingresados se conservan ante cualquier desenlace (FR-014).
+    private readonly ModeloImportacion modelo = new();
+
+    private bool enCurso;
+    private Desenlace desenlace;
+    private ConstanciaImportacionRespuesta? constancia;
+    private string? mensaje;
+    private IReadOnlyList<ErrorDeCampo> erroresDeCampo = Array.Empty<ErrorDeCampo>();
+
+    private async Task ImportarAsync()
+    {
+        if (enCurso)
+        {
+            return;
+        }
+
+        enCurso = true;
+        desenlace = Desenlace.Ninguno;
+        constancia = null;
+        mensaje = null;
+        erroresDeCampo = Array.Empty<ErrorDeCampo>();
+
+        try
+        {
+            // Sin cancelación: si se abandona la pantalla, el pedido sigue y la importación concluye.
+            Presentar(await Padron.ImportarAsync(new PedidoImportacion(modelo.RutaRelativa, modelo.Mes, modelo.Anio)));
+        }
+        finally
+        {
+            enCurso = false;
+        }
+    }
+
+    private void Presentar(ResultadoOperacion<ConstanciaImportacionRespuesta> resultado)
+    {
+        switch (resultado.Desenlace)
+        {
+            case DesenlaceOperacion.Exitosa:
+                constancia = resultado.Valor;
+                desenlace = Desenlace.Importado;
+                break;
+
+            case DesenlaceOperacion.Rechazada:
+                PresentarRechazo(resultado.Error!);
+                break;
+
+            case DesenlaceOperacion.SinConfirmacion:
+                desenlace = Desenlace.SinConfirmacion;
+                break;
+
+            // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+            case DesenlaceOperacion.SesionTerminada:
+                break;
+        }
+    }
+
+    private void PresentarRechazo(RespuestaError error)
+    {
+        mensaje = error.Detalle;
+
+        switch (error.Codigo)
+        {
+            case CodigosError.ImportacionFallida:
+                desenlace = Desenlace.Fallido;
+                break;
+
+            case CodigosError.PeriodoYaImportado:
+                desenlace = Desenlace.PeriodoYaImportado;
+                break;
+
+            // Los errores de datos se señalan en su campo, y la ruta fuera del directorio en el
+            // de la ruta: no hubo intento de importación ni constancia.
+            case CodigosError.DatosInvalidos when error.Errores is { Count: > 0 }:
+                erroresDeCampo = error.Errores;
+                break;
+
+            case CodigosError.RutaFueraDelDirectorio:
+                erroresDeCampo = new[] { new ErrorDeCampo("rutaRelativa", error.Detalle) };
+                break;
+
+            default:
+                desenlace = Desenlace.Rechazado;
+                break;
+        }
+    }
+
+    private string? ErrorDe(string campo) =>
+        erroresDeCampo.FirstOrDefault(error => error.Campo == campo)?.Detalle;
+
+    private sealed class ModeloImportacion
+    {
+        public string? RutaRelativa { get; set; }
+
+        public int? Mes { get; set; }
+
+        public int? Anio { get; set; }
+    }
+}
