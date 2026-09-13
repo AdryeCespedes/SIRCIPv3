@@ -23,9 +23,9 @@
     <p class="error" role="alert">@mensajeError</p>
 }
 
+@* EditForm ya incluye el token antiforgery. Un <AntiforgeryToken /> adicional repite el campo, el
+   navegador envía los dos y el servidor, al recibirlos unidos, rechaza el formulario. *@
 <EditForm Model="Modelo" method="post" OnSubmit="IngresarAsync" FormName="ingreso">
-    <AntiforgeryToken />
-
     <div class="campo">
         <label for="usuario">Nombre de usuario</label>
         <InputText id="usuario" @bind-Value="Modelo.Usuario" autocomplete="username" />

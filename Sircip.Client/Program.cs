@@ -62,3 +62,8 @@ static void ConfigurarClienteApi(IServiceProvider servicios, HttpClient cliente)
 
     cliente.BaseAddress = new Uri(urlBase.EndsWith('/') ? urlBase : urlBase + "/");
 }
+
+// Expone Program a WebApplicationFactory en los tests de integración.
+public partial class Program
+{
+}

@@ -27,6 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Sircip.Server\Sircip.Server.csproj" />
     <ProjectReference Include="..\Sircip.Contracts\Sircip.Contracts.csproj" />
+    <!-- Con alias: la API y la aplicación web tienen cada una su propia clase Program. -->
+    <ProjectReference Include="..\Sircip.Client\Sircip.Client.csproj" Aliases="Cliente" />
   </ItemGroup>
 
 </Project>
