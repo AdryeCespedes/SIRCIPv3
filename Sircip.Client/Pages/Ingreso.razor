@@ -11,41 +11,44 @@
 
 <PageTitle>Ingreso · SIRCIP</PageTitle>
 
-<h1>Ingreso</h1>
+<div class="tarjeta-ingreso">
+    <h1>SIRCIP</h1>
+    <p class="subtitulo">Ingresá con tu usuario para continuar.</p>
 
-@if (SesionTerminada)
-{
-    <p class="aviso" role="status">Tu sesión terminó. Ingresá de nuevo para continuar.</p>
-}
+    @if (SesionTerminada)
+    {
+        <p class="aviso" role="status">Tu sesión terminó. Ingresá de nuevo para continuar.</p>
+    }
 
-@if (mensajeError is not null)
-{
-    <p class="error" role="alert">@mensajeError</p>
-}
+    @if (mensajeError is not null)
+    {
+        <p class="error" role="alert">@mensajeError</p>
+    }
 
-@* EditForm ya incluye el token antiforgery. Un <AntiforgeryToken /> adicional repite el campo, el
-   navegador envía los dos y el servidor, al recibirlos unidos, rechaza el formulario. *@
-<EditForm Model="Modelo" method="post" OnSubmit="IngresarAsync" FormName="ingreso">
-    <div class="campo">
-        <label for="usuario">Nombre de usuario</label>
-        <InputText id="usuario" @bind-Value="Modelo.Usuario" autocomplete="username" />
-        @if (ErrorDe("usuario") is { } errorUsuario)
-        {
-            <span class="error-campo">@errorUsuario</span>
-        }
-    </div>
+    @* EditForm ya incluye el token antiforgery. Un <AntiforgeryToken /> adicional repite el campo, el
+       navegador envía los dos y el servidor, al recibirlos unidos, rechaza el formulario. *@
+    <EditForm Model="Modelo" method="post" OnSubmit="IngresarAsync" FormName="ingreso">
+        <div class="campo">
+            <label for="usuario">Nombre de usuario</label>
+            <InputText id="usuario" @bind-Value="Modelo.Usuario" autocomplete="username" />
+            @if (ErrorDe("usuario") is { } errorUsuario)
+            {
+                <span class="error-campo">@errorUsuario</span>
+            }
+        </div>
 
-    <div class="campo">
-        <label for="contrasena">Contraseña</label>
-        <InputText id="contrasena" type="password" @bind-Value="Modelo.Contrasena" autocomplete="current-password" />
-        @if (ErrorDe("contrasena") is { } errorContrasena)
-        {
-            <span class="error-campo">@errorContrasena</span>
-        }
-    </div>
+        <div class="campo">
+            <label for="contrasena">Contraseña</label>
+            <InputText id="contrasena" type="password" @bind-Value="Modelo.Contrasena" autocomplete="current-password" />
+            @if (ErrorDe("contrasena") is { } errorContrasena)
+            {
+                <span class="error-campo">@errorContrasena</span>
+            }
+        </div>
 
-    <button type="submit">Ingresar</button>
-</EditForm>
+        <button type="submit">Ingresar</button>
+    </EditForm>
+</div>
 
 @code {
     [CascadingParameter]
