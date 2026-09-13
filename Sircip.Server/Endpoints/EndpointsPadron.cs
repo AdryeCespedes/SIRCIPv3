@@ -1,5 +1,6 @@
 using Sircip.Contracts.Padron;
 using Sircip.Server.Authentication.Models;
+using Sircip.Server.Padron.Exceptions;
 using Sircip.Server.Padron.Services;
 
 namespace Sircip.Server.Endpoints;
@@ -24,13 +25,21 @@ public static class EndpointsPadron
                     Results.Ok(new HistorialImportacionesRespuesta(await importaciones.ObtenerHistorialAsync(contexto.RequestAborted))))
             .RequiereRol(Rol.Administrador);
 
-        // Pendiente de US5. La declaración de rol ya rige, para que la autorización de esta
-        // función sea verificable desde US1.
-        rutas.MapDelete("/api/padron/periodos/{periodo:int}", NoImplementado)
+        // Borrado lógico: no es reversible (FR-034). La confirmación que nombra el período es
+        // responsabilidad de la pantalla, no de este endpoint (contracts/api-padron.md).
+        rutas.MapDelete(
+                "/api/padron/periodos/{periodo:int}",
+                async (int periodo, HttpContext contexto, ServicioImportaciones importaciones) =>
+                {
+                    if (!await importaciones.DarDeBajaAsync(periodo, contexto.ObtenerSesion().UsuarioId, contexto.RequestAborted))
+                    {
+                        throw new PadronInexistenteException(periodo);
+                    }
+
+                    return Results.NoContent();
+                })
             .RequiereRol(Rol.Administrador);
 
         return rutas;
     }
-
-    private static IResult NoImplementado() => Results.StatusCode(StatusCodes.Status501NotImplemented);
 }

@@ -2,9 +2,11 @@
 @attribute [Authorize(Roles = "Administrador")]
 @using Sircip.Contracts.Padron
 @inject ClientePadron Padron
+@inject IJSRuntime JsRuntime
 
-@* Historial de importaciones (US4). La autoridad sobre el rol es la API: la declaración de esta
-   página solo evita ofrecer una pantalla que después se denegaría. *@
+@* Historial de importaciones (US4), y desde acá se da de baja un período (US5): es la única
+   superficie que ofrece esa acción (FR-011). La autoridad sobre el rol es la API: la
+   declaración de esta página solo evita ofrecer una pantalla que después se denegaría. *@
 
 <PageTitle>Historial de importaciones · SIRCIP</PageTitle>
 
@@ -12,6 +14,11 @@
 
 @* No se actualiza solo: refleja el estado al abrir la pantalla o al recargar (FR-035). *@
 <button type="button" @onclick="CargarAsync" disabled="@cargando">Recargar</button>
+
+@if (mensajeBaja is not null)
+{
+    <p class="error" role="alert">@mensajeBaja</p>
+}
 
 @switch (estado)
 {
@@ -25,6 +32,7 @@
                     <th>Resultado</th>
                     <th>Registros / error</th>
                     <th>Baja</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -37,6 +45,12 @@
                         <td>@constancia.Resultado</td>
                         <td>@(constancia.CantidadRegistros is { } cantidad ? FormatoPresentacion.Cantidad(cantidad) : constancia.DetalleError)</td>
                         <td>@(constancia.DadaDeBaja ? "Dada de baja" : "—")</td>
+                        <td>
+                            @if (constancia.PuedeDarseDeBaja)
+                            {
+                                <button type="button" @onclick="() => DarDeBajaAsync(constancia)" disabled="@dandoDeBaja">Dar de baja</button>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -62,9 +76,11 @@
     }
 
     private bool cargando;
+    private bool dandoDeBaja;
     private Estado estado;
     private IReadOnlyList<ConstanciaHistorialRespuesta>? constancias;
     private string? mensaje;
+    private string? mensajeBaja;
 
     protected override Task OnInitializedAsync() => CargarAsync();
 
@@ -108,6 +124,55 @@
             // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
             case DesenlaceOperacion.SesionTerminada:
                 break;
+        }
+    }
+
+    // Confirmación explícita que nombra el período afectado y advierte que no se puede deshacer
+    // (FR-034): sin ella no se ejecuta la baja. Tras confirmar, se recarga el listado.
+    private async Task DarDeBajaAsync(ConstanciaHistorialRespuesta constancia)
+    {
+        if (dandoDeBaja)
+        {
+            return;
+        }
+
+        var periodoTexto = FormatoPresentacion.Periodo(constancia.Periodo);
+        var confirmado = await JsRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"Vas a dar de baja el padrón del período {periodoTexto}. Esta acción no se puede deshacer: para recuperarlo hay que volver a importar el archivo.");
+
+        if (!confirmado)
+        {
+            return;
+        }
+
+        dandoDeBaja = true;
+        mensajeBaja = null;
+        try
+        {
+            var resultado = await Padron.DarDeBajaAsync(constancia.Periodo);
+            switch (resultado.Desenlace)
+            {
+                case DesenlaceOperacion.Exitosa:
+                    await CargarAsync();
+                    break;
+
+                case DesenlaceOperacion.Rechazada:
+                    mensajeBaja = resultado.Error!.Detalle;
+                    break;
+
+                case DesenlaceOperacion.SinConfirmacion:
+                    mensajeBaja = ManejadorRespuestas.MensajeSinConfirmacion;
+                    break;
+
+                // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+                case DesenlaceOperacion.SesionTerminada:
+                    break;
+            }
+        }
+        finally
+        {
+            dandoDeBaja = false;
         }
     }
 }

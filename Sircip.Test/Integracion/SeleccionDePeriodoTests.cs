@@ -53,7 +53,7 @@ public class SeleccionDePeriodoTests : IClassFixture<FabricaAplicacionDePrueba>
         Assert.Equal((byte)34, resultado2.Crc);
     }
 
-    [Fact(Skip = "Se habilita con US5: hasta entonces DELETE /api/padron/periodos/{periodo} es un stub que responde 501.")]
+    [Fact]
     public async Task Dar_de_baja_un_periodo_no_afecta_al_otro()
     {
         const int periodo1 = 202605;

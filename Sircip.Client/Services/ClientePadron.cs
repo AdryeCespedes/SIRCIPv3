@@ -33,4 +33,13 @@ public sealed class ClientePadron
 
         return await manejador.EnviarAsync<HistorialImportacionesRespuesta>(http, mensaje, cancelacion);
     }
+
+    // Borrado lógico: no es reversible (FR-034). La confirmación que nombra el período es
+    // responsabilidad de la pantalla, no de este cliente.
+    public async Task<ResultadoOperacion<bool>> DarDeBajaAsync(int periodo, CancellationToken cancelacion = default)
+    {
+        using var mensaje = new HttpRequestMessage(HttpMethod.Delete, $"api/padron/periodos/{periodo}");
+
+        return await manejador.EnviarSinCuerpoAsync(http, mensaje, cancelacion);
+    }
 }

@@ -235,16 +235,16 @@ Dentro de cada área funcional se separa por tipo: `Models/`, `Services/`, `Vali
 
 ### Tests for User Story 5 (MANDATORY — Principle I) ⚠️
 
-- [ ] T100 [P] [US5] Tests de integración de la baja en `Sircip.Test/Integracion/BajaPadronTests.cs`: baja → 204; cálculo posterior para ese período → 404 (AC-12); el historial muestra la constancia **marcada como borrada** conservando su cantidad de registros original, sin haberla eliminado (AC-13); y el archivo `.bin` **ya no existe** tras la misma operación (FR-034). Junto con T101 sostiene SC-009: el 100% de los períodos dados de baja conserva su constancia marcada como borrada y queda disponible para una nueva importación
-- [ ] T101 [P] [US5] Test de integración de reimportación en `Sircip.Test/Integracion/ReimportacionTests.cs`: tras la baja, importar otra vez el mismo período es aceptado y se persiste completo (FR-034)
-- [ ] T102 [P] [US5] Tests de integración de autorización y período inexistente en `Sircip.Test/Integracion/BajaPadronAutorizacionTests.cs`: rol Usuario → 403 (AC-14); período no importado o ya dado de baja → 404 (Principio V)
+- [X] T100 [P] [US5] Tests de integración de la baja en `Sircip.Test/Integracion/BajaPadronTests.cs`: baja → 204; cálculo posterior para ese período → 404 (AC-12); el historial muestra la constancia **marcada como borrada** conservando su cantidad de registros original, sin haberla eliminado (AC-13); y el archivo `.bin` **ya no existe** tras la misma operación (FR-034). Junto con T101 sostiene SC-009: el 100% de los períodos dados de baja conserva su constancia marcada como borrada y queda disponible para una nueva importación
+- [X] T101 [P] [US5] Test de integración de reimportación en `Sircip.Test/Integracion/ReimportacionTests.cs`: tras la baja, importar otra vez el mismo período es aceptado y se persiste completo (FR-034)
+- [X] T102 [P] [US5] Tests de integración de autorización y período inexistente en `Sircip.Test/Integracion/BajaPadronAutorizacionTests.cs`: rol Usuario → 403 (AC-14); período no importado o ya dado de baja → 404 (Principio V)
 
 ### Implementation for User Story 5
 
-- [ ] T103 [US5] Agregar la baja lógica a `Sircip.Server/Padron/Services/ServicioImportaciones.cs`: marcar `BajaUtc` y `BajaUsuarioId` en la constancia y **borrar el archivo `.bin` en la misma operación**, en ese orden. La constancia nunca se elimina físicamente y la baja no es reversible (FR-034; depende de T065)
-- [ ] T104 [US5] Mapear `DELETE /api/padron/periodos/{periodo}` con rol Administrador en `Sircip.Server/Endpoints/EndpointsPadron.cs`, reemplazando el stub de T038, con los códigos 204/401/403/404 (depende de T103)
-- [ ] T105 [P] [US5] Agregar la operación de baja a `Sircip.Client/Services/ClientePadron.cs`
-- [ ] T106 [US5] Agregar la acción de baja a `Sircip.Client/Pages/Historial.razor`, ofrecida solo en las constancias con `puedeDarseDeBaja`, con una **confirmación explícita que nombra el período afectado** y advierte que no se puede deshacer; sin esa confirmación no se ejecuta, y al confirmar se recarga el listado (FR-034; depende de T099, T105)
+- [X] T103 [US5] Agregar la baja lógica a `Sircip.Server/Padron/Services/ServicioImportaciones.cs`: marcar `BajaUtc` y `BajaUsuarioId` en la constancia y **borrar el archivo `.bin` en la misma operación**, en ese orden. La constancia nunca se elimina físicamente y la baja no es reversible (FR-034; depende de T065)
+- [X] T104 [US5] Mapear `DELETE /api/padron/periodos/{periodo}` con rol Administrador en `Sircip.Server/Endpoints/EndpointsPadron.cs`, reemplazando el stub de T038, con los códigos 204/401/403/404 (depende de T103)
+- [X] T105 [P] [US5] Agregar la operación de baja a `Sircip.Client/Services/ClientePadron.cs`
+- [X] T106 [US5] Agregar la acción de baja a `Sircip.Client/Pages/Historial.razor`, ofrecida solo en las constancias con `puedeDarseDeBaja`, con una **confirmación explícita que nombra el período afectado** y advierte que no se puede deshacer; sin esa confirmación no se ejecuta, y al confirmar se recarga el listado (FR-034; depende de T099, T105)
 
 **Checkpoint**: las cinco historias funcionan de forma independiente.
 

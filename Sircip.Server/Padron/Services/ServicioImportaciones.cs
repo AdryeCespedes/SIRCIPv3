@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Sircip.Contracts.Padron;
+using Sircip.Server.Configuration;
 using Sircip.Server.Data;
 using Sircip.Server.Padron.Models;
 
@@ -11,11 +13,15 @@ public sealed class ServicioImportaciones
 {
     private readonly SircipDbContext contexto;
     private readonly TimeProvider reloj;
+    private readonly string directorioPadron;
+    private readonly ILogger<ServicioImportaciones> registro;
 
-    public ServicioImportaciones(SircipDbContext contexto, TimeProvider reloj)
+    public ServicioImportaciones(SircipDbContext contexto, TimeProvider reloj, IOptions<OpcionesSircip> opciones, ILogger<ServicioImportaciones> registro)
     {
         this.contexto = contexto;
         this.reloj = reloj;
+        directorioPadron = opciones.Value.DirectorioPadron;
+        this.registro = registro;
     }
 
     // Un período está importado si y solo si tiene una constancia exitosa sin baja (data-model.md §1).
@@ -68,6 +74,39 @@ public sealed class ServicioImportaciones
         importacion.DetalleError,
         DadaDeBaja: importacion.BajaUtc is not null,
         PuedeDarseDeBaja: importacion.Resultado == ResultadoImportacion.Exitosa && importacion.BajaUtc is null);
+
+    // Borrado lógico (FR-034, contracts/api-padron.md): marca la constancia como dada de baja y
+    // recién entonces libera el almacenamiento del padrón, en ese orden — la constancia ya marcada
+    // es la autoridad, así que un borrado de archivo fallido no revierte la baja ni impide el 204;
+    // el archivo queda huérfano, inalcanzable para el cálculo. No es reversible: el período se
+    // recupera únicamente reimportando el archivo. Devuelve false si no está importado o ya fue
+    // dado de baja.
+    public async Task<bool> DarDeBajaAsync(int periodo, int usuarioId, CancellationToken cancelacion)
+    {
+        var importacion = await contexto.Importaciones.SingleOrDefaultAsync(
+            i => i.Periodo == periodo && i.Resultado == ResultadoImportacion.Exitosa && i.BajaUtc == null,
+            cancelacion);
+
+        if (importacion is null)
+        {
+            return false;
+        }
+
+        importacion.BajaUtc = TruncarAMilisegundos(reloj.GetUtcNow().UtcDateTime);
+        importacion.BajaUsuarioId = usuarioId;
+        await contexto.SaveChangesAsync(cancelacion);
+
+        try
+        {
+            File.Delete(UbicacionPadron.RutaDefinitiva(directorioPadron, periodo));
+        }
+        catch (Exception excepcion) when (excepcion is IOException or UnauthorizedAccessException)
+        {
+            registro.LogWarning(excepcion, "No se pudo borrar el archivo del padrón dado de baja del período {Periodo}.", periodo);
+        }
+
+        return true;
+    }
 
     public static ConstanciaImportacionRespuesta CrearRespuesta(Importacion importacion, string nombreUsuario) => new(
         importacion.Id,

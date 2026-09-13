@@ -17,6 +17,9 @@ public static class ExtensionesImportacion
     public static Task<HttpResponseMessage> ObtenerHistorialAsync(this ClienteAutenticado cliente, CancellationToken cancelacion = default) =>
         cliente.Cliente.GetAsync(RutaImportaciones, cancelacion);
 
+    public static Task<HttpResponseMessage> DarDeBajaAsync(this ClienteAutenticado cliente, int periodo, CancellationToken cancelacion = default) =>
+        cliente.Cliente.DeleteAsync($"/api/padron/periodos/{periodo}", cancelacion);
+
     public static string ArchivoPadron(this FabricaAplicacionDePrueba fabrica, int periodo) =>
         Path.Combine(fabrica.DirectorioPadron, $"padron-{periodo}.bin");
 

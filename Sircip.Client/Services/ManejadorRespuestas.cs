@@ -57,6 +57,36 @@ public sealed class ManejadorRespuestas
         }
     }
 
+    // Como EnviarAsync, pero para operaciones cuyo éxito no trae cuerpo (204), como la baja de
+    // un período: ReadFromJsonAsync<T> sobre un cuerpo vacío lanzaría JsonException, que
+    // EsCorteDeComunicacion trataría como "no pudo confirmarse" — un 204 exitoso no es eso.
+    public async Task<ResultadoOperacion<bool>> EnviarSinCuerpoAsync(HttpClient http, HttpRequestMessage pedido, CancellationToken cancelacion)
+    {
+        pedido.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await autenticacion.ObtenerTokenAsync());
+
+        try
+        {
+            using var respuesta = await http.SendAsync(pedido, cancelacion);
+
+            if (ManejarSesionTerminada(respuesta))
+            {
+                return ResultadoOperacion<bool>.SesionTerminada();
+            }
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                return ResultadoOperacion<bool>.Exitosa(true);
+            }
+
+            var error = await LeerErrorAsync(respuesta, cancelacion);
+            return error is null ? ResultadoOperacion<bool>.SinConfirmacion() : ResultadoOperacion<bool>.Rechazada(error);
+        }
+        catch (Exception excepcion) when (EsCorteDeComunicacion(excepcion, cancelacion))
+        {
+            return ResultadoOperacion<bool>.SinConfirmacion();
+        }
+    }
+
     // Todo 401 de la API significa que la sesión terminó: por inactividad, por cierre o
     // por un cambio en el usuario. Se informa y se lleva a la pantalla de ingreso, sin
     // presentarlo como error de la operación pedida (FR-016).
