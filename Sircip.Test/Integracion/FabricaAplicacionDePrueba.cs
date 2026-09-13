@@ -151,7 +151,7 @@ public class FabricaAplicacionDePrueba : WebApplicationFactory<Program>
 
     // Toma la cadena de los user-secrets de Sircip.Server o del entorno, y cambia solo
     // el nombre de la base para que cada clase de tests trabaje aislada.
-    private static string ArmarCadenaConexion(string nombreBase)
+    internal static string ArmarCadenaConexion(string nombreBase)
     {
         var configuracion = new ConfigurationBuilder()
             .AddUserSecrets<Program>(optional: true)

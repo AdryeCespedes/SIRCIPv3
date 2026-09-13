@@ -37,7 +37,7 @@ public sealed class ServicioAutenticacion
                 .AsNoTracking()
                 .SingleOrDefaultAsync(u => u.NombreUsuario == pedido.Usuario, cancelacion);
         }
-        catch (DbException excepcion)
+        catch (Exception excepcion) when (EsFallaDeBase(excepcion))
         {
             // Sin base de usuarios no se concede acceso, y el motivo que ve el cliente es el
             // mismo que ante credenciales incorrectas (FR-002).
@@ -55,5 +55,20 @@ public sealed class ServicioAutenticacion
 
         var token = await sesiones.CrearAsync(usuario, cancelacion);
         return new RespuestaIngreso(token, new UsuarioAutenticado(usuario.NombreUsuario, usuario.Rol.ToString()));
+    }
+
+    // EF Core no siempre deja pasar la DbException tal cual: ante un error que considera
+    // transitorio, como una base que no se puede abrir, la envuelve en una InvalidOperationException.
+    private static bool EsFallaDeBase(Exception excepcion)
+    {
+        for (var actual = excepcion; actual is not null; actual = actual.InnerException)
+        {
+            if (actual is DbException)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
