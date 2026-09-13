@@ -1,0 +1,24 @@
+@inject NavigationManager Navegacion
+
+@* Sin sesión se va a la pantalla de ingreso. Con sesión pero sin el rol necesario se
+   informa: la navegación no ofrece esas pantallas, así que solo se llega escribiendo la
+   dirección a mano. *@
+
+@if (Autenticado)
+{
+    <h1>Sin permiso</h1>
+    <p>Tu rol no tiene acceso a esta pantalla.</p>
+}
+
+@code {
+    [Parameter]
+    public bool Autenticado { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (!Autenticado)
+        {
+            Navegacion.NavigateTo("/ingreso", forceLoad: true);
+        }
+    }
+}

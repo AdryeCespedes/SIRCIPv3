@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="app.css" />
+    <HeadOutlet @rendermode="ModoDeRenderizado" />
+</head>
+
+<body>
+    <Routes @rendermode="ModoDeRenderizado" />
+
+    @* Blazor lo muestra cuando se corta la comunicación con el servidor. Una operación que estaba
+       en curso no puede presentarse ni como exitosa ni como fallida (FR-018). *@
+    <div id="components-reconnect-modal" role="alert">
+        <p class="reconexion-intentando">Se interrumpió la comunicación con el servidor. Intentando reconectar…</p>
+        <p class="reconexion-fallida">No se pudo restablecer la comunicación con el servidor. <button type="button" onclick="location.reload()">Recargar</button></p>
+        <p class="reconexion-rechazada">La conexión con el servidor se perdió. <button type="button" onclick="location.reload()">Recargar</button></p>
+        <p>
+            Si había una operación en curso, no pudo confirmarse. Una importación puede haber seguido
+            corriendo en el servidor: consultá su resultado en el historial antes de volver a intentarla.
+        </p>
+    </div>
+
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    // La pantalla de ingreso se renderiza estática, sin circuito interactivo: es la única
+    // que tiene que escribir la cookie de sesión en la respuesta HTTP.
+    private IComponentRenderMode? ModoDeRenderizado =>
+        HttpContext.Request.Path.StartsWithSegments("/ingreso") ? null : InteractiveServer;
+}

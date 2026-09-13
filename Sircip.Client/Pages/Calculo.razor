@@ -1,0 +1,268 @@
+@page "/"
+@using Sircip.Contracts.Errors
+@using Sircip.Contracts.Percepciones
+@inject ClientePercepciones Percepciones
+
+@* Cálculo de percepciones (US3): la pantalla de uso diario de los dos roles (FR-012). *@
+
+<PageTitle>Cálculo de percepciones · SIRCIP</PageTitle>
+
+<h1>Cálculo de percepciones</h1>
+
+<EditForm Model="modelo" OnSubmit="CalcularAsync" FormName="calculo">
+    <div class="campo">
+        <label for="cuit">CUIT</label>
+        <InputText id="cuit" @bind-Value="modelo.Cuit" placeholder="30100100106" />
+        @if (ErrorDe("cuit") is { } errorCuit)
+        {
+            <span class="error-campo">@errorCuit</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="fecha">Fecha del comprobante</label>
+        <InputDate id="fecha" @bind-Value="modelo.Fecha" />
+        @if (ErrorDe("fecha") is { } errorFecha)
+        {
+            <span class="error-campo">@errorFecha</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="netoGravado">Importe neto gravado</label>
+        <InputNumber id="netoGravado" @bind-Value="modelo.NetoGravado" />
+        @if (ErrorDe("netoGravado") is { } errorNeto)
+        {
+            <span class="error-campo">@errorNeto</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="jurisdiccionEntrega">Provincia de entrega</label>
+        <InputSelect id="jurisdiccionEntrega" @bind-Value="modelo.JurisdiccionEntrega">
+            <option value="">Seleccioná una provincia</option>
+            @foreach (var jurisdiccion in Jurisdicciones)
+            {
+                <option value="@jurisdiccion.Codigo">@jurisdiccion.Nombre</option>
+            }
+        </InputSelect>
+        @if (ErrorDe("jurisdiccionEntrega") is { } errorJurisdiccion)
+        {
+            <span class="error-campo">@errorJurisdiccion</span>
+        }
+    </div>
+
+    @* No se deshabilita: el cálculo no modifica el estado del sistema y su espera es de hasta
+       2 segundos, no de hasta 60 como la importación (FR-015). *@
+    <button type="submit">Calcular</button>
+</EditForm>
+
+@if (enCalculo)
+{
+    <p class="aviso" role="status">Calculando…</p>
+}
+
+@switch (desenlace)
+{
+    case Desenlace.ConPercepciones when resultado is not null:
+        <section class="resultado" role="status">
+            <h2>Percepciones a aplicar</h2>
+            <p>Período de padrón utilizado: <span class="copiable">@FormatoPresentacion.Periodo(resultado.PeriodoUtilizado)</span></p>
+            @if (resultado.Crc is { } crc)
+            {
+                <p>CRC: <span class="copiable">@crc</span></p>
+            }
+            <div class="tabla-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Percepción</th>
+                        <th>Jurisdicción</th>
+                        <th>Alícuota</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var linea in resultado.Lineas)
+                    {
+                        <tr>
+                            <td>@Rotulo(linea.Tipo)</td>
+                            <td>@linea.Jurisdiccion</td>
+                            <td><span class="copiable">@FormatoPresentacion.Alicuota(linea.Alicuota)</span></td>
+                            <td><span class="copiable">@FormatoPresentacion.Importe(linea.Importe)</span></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    @foreach (var subtotal in resultado.SubtotalesPorTipo)
+                    {
+                        <tr>
+                            <td colspan="3">Subtotal @Rotulo(subtotal.Tipo)</td>
+                            <td><span class="copiable">@FormatoPresentacion.Importe(subtotal.Subtotal)</span></td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="3">Total general</td>
+                        <td><span class="copiable">@FormatoPresentacion.Importe(resultado.TotalGeneral)</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+            </div>
+        </section>
+        break;
+
+    case Desenlace.NoCorresponde when resultado is not null:
+        <section class="resultado" role="status">
+            <h2>No corresponde percibir en esta jurisdicción</h2>
+            <p>Período de padrón utilizado: <span class="copiable">@FormatoPresentacion.Periodo(resultado.PeriodoUtilizado)</span></p>
+        </section>
+        break;
+
+    case Desenlace.PadronInexistente:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+
+    case Desenlace.EstadoNoReconocido:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+
+    case Desenlace.SinConfirmacion:
+        <section class="aviso" role="alert">
+            <h2>El cálculo no pudo confirmarse</h2>
+            <p>@ManejadorRespuestas.MensajeSinConfirmacion</p>
+        </section>
+        break;
+
+    case Desenlace.Rechazado:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+}
+
+@code {
+    // Anexo C (data-model.md §3): solo los nombres, para el selector. Los códigos son los que
+    // valida y decide la API; esta lista no gobierna ninguna regla de cálculo.
+    private static readonly (int Codigo, string Nombre)[] Jurisdicciones =
+    {
+        (901, "Capital Federal"), (902, "Buenos Aires"), (903, "Catamarca"), (904, "Córdoba"),
+        (905, "Corrientes"), (906, "Chaco"), (907, "Chubut"), (908, "Entre Ríos"),
+        (909, "Formosa"), (910, "Jujuy"), (911, "La Pampa"), (912, "La Rioja"),
+        (913, "Mendoza"), (914, "Misiones"), (915, "Neuquén"), (916, "Río Negro"),
+        (917, "Salta"), (918, "San Juan"), (919, "San Luis"), (920, "Santa Cruz"),
+        (921, "Santa Fe"), (922, "Santiago del Estero"), (923, "Tierra del Fuego"), (924, "Tucumán"),
+    };
+
+    private enum Desenlace
+    {
+        Ninguno,
+        ConPercepciones,
+        NoCorresponde,
+        PadronInexistente,
+        EstadoNoReconocido,
+        Rechazado,
+        SinConfirmacion
+    }
+
+    // Los datos ingresados se conservan ante cualquier desenlace (FR-014).
+    private readonly ModeloCalculo modelo = new();
+
+    private bool enCalculo;
+    private Desenlace desenlace;
+    private ResultadoCalculoRespuesta? resultado;
+    private string? mensaje;
+    private IReadOnlyList<ErrorDeCampo> erroresDeCampo = Array.Empty<ErrorDeCampo>();
+
+    private async Task CalcularAsync()
+    {
+        if (enCalculo)
+        {
+            return;
+        }
+
+        enCalculo = true;
+        desenlace = Desenlace.Ninguno;
+        resultado = null;
+        mensaje = null;
+        erroresDeCampo = Array.Empty<ErrorDeCampo>();
+
+        try
+        {
+            var pedido = new PedidoCalculo(modelo.Cuit, modelo.Fecha, modelo.NetoGravado, modelo.JurisdiccionEntrega);
+            Presentar(await Percepciones.CalcularAsync(pedido));
+        }
+        finally
+        {
+            enCalculo = false;
+        }
+    }
+
+    private void Presentar(ResultadoOperacion<ResultadoCalculoRespuesta> resultadoOperacion)
+    {
+        switch (resultadoOperacion.Desenlace)
+        {
+            case DesenlaceOperacion.Exitosa:
+                resultado = resultadoOperacion.Valor;
+                desenlace = resultado!.Lineas.Count > 0 ? Desenlace.ConPercepciones : Desenlace.NoCorresponde;
+                break;
+
+            case DesenlaceOperacion.Rechazada:
+                PresentarRechazo(resultadoOperacion.Error!);
+                break;
+
+            case DesenlaceOperacion.SinConfirmacion:
+                desenlace = Desenlace.SinConfirmacion;
+                break;
+
+            // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+            case DesenlaceOperacion.SesionTerminada:
+                break;
+        }
+    }
+
+    private void PresentarRechazo(RespuestaError error)
+    {
+        mensaje = error.Detalle;
+
+        switch (error.Codigo)
+        {
+            case CodigosError.PadronInexistente:
+                desenlace = Desenlace.PadronInexistente;
+                break;
+
+            case CodigosError.EstadoNoReconocido:
+                desenlace = Desenlace.EstadoNoReconocido;
+                break;
+
+            case CodigosError.DatosInvalidos when error.Errores is { Count: > 0 }:
+                erroresDeCampo = error.Errores;
+                break;
+
+            default:
+                desenlace = Desenlace.Rechazado;
+                break;
+        }
+    }
+
+    private string? ErrorDe(string campo) =>
+        erroresDeCampo.FirstOrDefault(error => error.Campo == campo)?.Detalle;
+
+    // Rótulos de FR-017. El nombre del tipo llega tal cual desde la API.
+    private static string Rotulo(string tipo) => tipo switch
+    {
+        "Sircip" => "Percepción IIBB SIRCIP",
+        "Sobretasa" => "Percepción por sobretasa",
+        "Local" => "Percepción local",
+        "NoInscripto" => "Percepción por no inscripto",
+        _ => tipo,
+    };
+
+    private sealed class ModeloCalculo
+    {
+        public string? Cuit { get; set; }
+
+        public DateOnly? Fecha { get; set; }
+
+        public decimal? NetoGravado { get; set; }
+
+        public int? JurisdiccionEntrega { get; set; }
+    }
+}

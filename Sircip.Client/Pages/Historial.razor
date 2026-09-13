@@ -1,0 +1,193 @@
+@page "/historial"
+@attribute [Authorize(Roles = "Administrador")]
+@using Sircip.Contracts.Padron
+@inject ClientePadron Padron
+@inject IJSRuntime JsRuntime
+
+@* Historial de importaciones (US4), y desde acá se da de baja un período (US5): es la única
+   superficie que ofrece esa acción (FR-011). La autoridad sobre el rol es la API: la
+   declaración de esta página solo evita ofrecer una pantalla que después se denegaría. *@
+
+<PageTitle>Historial de importaciones · SIRCIP</PageTitle>
+
+<h1>Historial de importaciones</h1>
+
+@* No se actualiza solo: refleja el estado al abrir la pantalla o al recargar (FR-035). *@
+<button type="button" @onclick="CargarAsync" disabled="@cargando">Recargar</button>
+
+@if (mensajeBaja is not null)
+{
+    <p class="error" role="alert">@mensajeBaja</p>
+}
+
+@switch (estado)
+{
+    case Estado.ConConstancias when constancias is not null:
+        <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Resultado</th>
+                    <th>Registros</th>
+                    <th>Error</th>
+                    <th>Baja</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var constancia in constancias)
+                {
+                    <tr>
+                        <td>@FormatoPresentacion.Periodo(constancia.Periodo)</td>
+                        <td>@FormatoPresentacion.Fecha(constancia.FechaImportacionUtc)</td>
+                        <td>@constancia.Usuario</td>
+                        <td>@constancia.Resultado</td>
+                        <td>@(constancia.CantidadRegistros is { } cantidad ? FormatoPresentacion.Cantidad(cantidad) : "—")</td>
+                        <td class="celda-error">@(constancia.DetalleError ?? "—")</td>
+                        <td>@(constancia.DadaDeBaja ? "Dada de baja" : "—")</td>
+                        <td>
+                            @if (constancia.PuedeDarseDeBaja)
+                            {
+                                <button
+                                    type="button"
+                                    class="boton-icono boton-peligro"
+                                    @onclick="() => DarDeBajaAsync(constancia)"
+                                    disabled="@dandoDeBaja"
+                                    title="Dar de baja"
+                                    aria-label="Dar de baja el padrón del período @FormatoPresentacion.Periodo(constancia.Periodo)">
+                                    <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+                                        <path d="M2 4h12M6 4V2.5A1.5 1.5 0 0 1 7.5 1h1A1.5 1.5 0 0 1 10 2.5V4M3.5 4l.6 9a1.5 1.5 0 0 0 1.5 1.4h4.8a1.5 1.5 0 0 0 1.5-1.4l.6-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M6.5 7v5M9.5 7v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+        break;
+
+    case Estado.SinConstancias:
+        <p class="aviso" role="status">Todavía no hay ninguna importación registrada.</p>
+        break;
+
+    case Estado.Falla:
+        <p class="error" role="alert">@mensaje</p>
+        break;
+}
+
+@code {
+    private enum Estado
+    {
+        Ninguno,
+        ConConstancias,
+        SinConstancias,
+        Falla
+    }
+
+    private bool cargando;
+    private bool dandoDeBaja;
+    private Estado estado;
+    private IReadOnlyList<ConstanciaHistorialRespuesta>? constancias;
+    private string? mensaje;
+    private string? mensajeBaja;
+
+    protected override Task OnInitializedAsync() => CargarAsync();
+
+    private async Task CargarAsync()
+    {
+        if (cargando)
+        {
+            return;
+        }
+
+        cargando = true;
+        try
+        {
+            Presentar(await Padron.ObtenerHistorialAsync());
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void Presentar(ResultadoOperacion<HistorialImportacionesRespuesta> resultado)
+    {
+        switch (resultado.Desenlace)
+        {
+            case DesenlaceOperacion.Exitosa:
+                constancias = resultado.Valor!.Constancias;
+                estado = constancias.Count > 0 ? Estado.ConConstancias : Estado.SinConstancias;
+                break;
+
+            case DesenlaceOperacion.Rechazada:
+                mensaje = resultado.Error!.Detalle;
+                estado = Estado.Falla;
+                break;
+
+            case DesenlaceOperacion.SinConfirmacion:
+                mensaje = ManejadorRespuestas.MensajeSinConfirmacion;
+                estado = Estado.Falla;
+                break;
+
+            // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+            case DesenlaceOperacion.SesionTerminada:
+                break;
+        }
+    }
+
+    // Confirmación explícita que nombra el período afectado y advierte que no se puede deshacer
+    // (FR-034): sin ella no se ejecuta la baja. Tras confirmar, se recarga el listado.
+    private async Task DarDeBajaAsync(ConstanciaHistorialRespuesta constancia)
+    {
+        if (dandoDeBaja)
+        {
+            return;
+        }
+
+        var periodoTexto = FormatoPresentacion.Periodo(constancia.Periodo);
+        var confirmado = await JsRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"Vas a dar de baja el padrón del período {periodoTexto}. Esta acción no se puede deshacer: para recuperarlo hay que volver a importar el archivo.");
+
+        if (!confirmado)
+        {
+            return;
+        }
+
+        dandoDeBaja = true;
+        mensajeBaja = null;
+        try
+        {
+            var resultado = await Padron.DarDeBajaAsync(constancia.Periodo);
+            switch (resultado.Desenlace)
+            {
+                case DesenlaceOperacion.Exitosa:
+                    await CargarAsync();
+                    break;
+
+                case DesenlaceOperacion.Rechazada:
+                    mensajeBaja = resultado.Error!.Detalle;
+                    break;
+
+                case DesenlaceOperacion.SinConfirmacion:
+                    mensajeBaja = ManejadorRespuestas.MensajeSinConfirmacion;
+                    break;
+
+                // Con la sesión terminada, ManejadorRespuestas ya llevó a la pantalla de ingreso (FR-016).
+                case DesenlaceOperacion.SesionTerminada:
+                    break;
+            }
+        }
+        finally
+        {
+            dandoDeBaja = false;
+        }
+    }
+}

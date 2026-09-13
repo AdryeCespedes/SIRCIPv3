@@ -1,0 +1,524 @@
+/* Sistema de diseño de SIRCIP: sobrio y funcional, sin dependencias externas.
+   Paleta neutra con un acento azul-petróleo, coherente con las cuatro pantallas. */
+
+:root {
+    --color-bg: #f3f5f7;
+    --color-surface: #ffffff;
+    --color-text: #1f2733;
+    --color-text-muted: #5b6472;
+    --color-border: #d7dce2;
+    --color-border-strong: #b7c0ca;
+
+    --color-primary: #1d4e6e;
+    --color-primary-hover: #163c55;
+    --color-primary-contrast: #ffffff;
+
+    --color-danger: #b3261e;
+    --color-danger-bg: #fdecea;
+    --color-danger-border: #f3c6c2;
+
+    --color-warning: #7a5901;
+    --color-warning-bg: #fff6e0;
+    --color-warning-border: #f0ddaa;
+
+    --color-success: #1e6b3a;
+    --color-success-bg: #e9f6ee;
+    --color-success-border: #bfe3cd;
+
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --radius: 6px;
+    --shadow-surface: 0 1px 2px rgba(31, 39, 51, 0.06), 0 1px 1px rgba(31, 39, 51, 0.04);
+    --espacio: 1rem;
+}
+
+/* --- Base --- */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    color-scheme: light;
+}
+
+body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-text);
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin: 0 0 1.25rem;
+}
+
+h1:focus {
+    outline: none;
+}
+
+h2 {
+    font-size: 1.125rem;
+    margin: 0 0 0.75rem;
+}
+
+p {
+    margin: 0 0 0.75rem;
+}
+
+a {
+    color: var(--color-primary);
+}
+
+/* --- Layout --- */
+
+main {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+}
+
+.navegacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.75rem 1.25rem;
+    box-shadow: var(--shadow-surface);
+}
+
+    .navegacion a {
+        color: var(--color-text-muted);
+        text-decoration: none;
+        font-size: 0.9375rem;
+        padding: 0.4rem 0.1rem;
+        border-bottom: 2px solid transparent;
+    }
+
+    .navegacion a:hover {
+        color: var(--color-text);
+    }
+
+    .navegacion a.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+        font-weight: 600;
+    }
+
+    .navegacion .usuario {
+        margin-left: auto;
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+    }
+
+    .navegacion form {
+        margin: 0;
+    }
+
+/* --- Ingreso: única pantalla sin navegación, se presenta como tarjeta centrada --- */
+
+.tarjeta-ingreso {
+    max-width: 22rem;
+    margin: 3rem auto 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-surface);
+    padding: 2rem 1.75rem;
+}
+
+    .tarjeta-ingreso h1 {
+        text-align: center;
+        color: var(--color-primary);
+    }
+
+    .tarjeta-ingreso .campo {
+        max-width: none;
+    }
+
+    .tarjeta-ingreso button[type="submit"] {
+        width: 100%;
+    }
+
+.subtitulo {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-top: -0.5rem;
+}
+
+/* --- Formularios --- */
+
+label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+input, select, textarea {
+    font: inherit;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.65rem;
+    width: 100%;
+    max-width: 24rem;
+}
+
+    input:focus, select:focus, textarea:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 1px;
+        border-color: var(--color-primary);
+    }
+
+    input.invalid, select.invalid, textarea.invalid {
+        border-color: var(--color-danger);
+    }
+
+.campo {
+    margin-bottom: 1rem;
+    max-width: 24rem;
+}
+
+.error-campo {
+    display: block;
+    color: var(--color-danger);
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+}
+
+.validation-message {
+    display: block;
+    color: var(--color-danger);
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+}
+
+button, input[type="submit"] {
+    font: inherit;
+    font-weight: 600;
+    color: var(--color-primary-contrast);
+    background: var(--color-primary);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.55rem 1.1rem;
+    cursor: pointer;
+}
+
+    button:hover:not(:disabled), input[type="submit"]:hover:not(:disabled) {
+        background: var(--color-primary-hover);
+    }
+
+    button:focus-visible, input[type="submit"]:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    button:disabled, input[type="submit"]:disabled {
+        background: var(--color-border-strong);
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+    }
+
+/* Botón secundario: acciones de la fila de una tabla (por ejemplo "Dar de baja"). */
+table button {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px solid var(--color-border-strong);
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+    table button:hover:not(:disabled) {
+        background: var(--color-danger-bg);
+        border-color: var(--color-danger-border);
+        color: var(--color-danger);
+    }
+
+/* Botón de solo ícono (por ejemplo, "Dar de baja" en Historial): el color ya anticipa que es
+   una acción destructiva, sin necesidad de texto. title/aria-label lo siguen nombrando. */
+.boton-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    padding: 0;
+}
+
+.boton-peligro {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-border);
+}
+
+    .boton-peligro:hover:not(:disabled) {
+        background: var(--color-danger);
+        color: var(--color-primary-contrast);
+        border-color: var(--color-danger);
+    }
+
+    .boton-peligro:disabled {
+        background: var(--color-bg);
+        color: var(--color-text-muted);
+        border-color: var(--color-border);
+    }
+
+/* --- Tablas --- */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-surface);
+}
+
+th, td {
+    text-align: left;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9375rem;
+    /* Solo rompe una palabra si de verdad no entra; no fuerza el corte de texto normal. */
+    overflow-wrap: break-word;
+}
+
+th {
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
+tbody tr:last-child td, tfoot tr:last-child td {
+    border-bottom: none;
+}
+
+tfoot td {
+    font-weight: 600;
+    background: var(--color-bg);
+}
+
+/* El detalle de una falla puede ser largo: se le da un ancho razonable y ajusta ahí, en vez de
+   estirar toda la tabla para que entre en una sola línea. */
+.celda-error {
+    max-width: 22rem;
+}
+
+/* La tabla puede desbordar en pantallas angostas sin romper el ancho de la página: el
+   contenedor scrollea, no la tabla (display:block en <table> desalinea las columnas y
+   esconde lo que quede fuera de vista, como el botón de acción de la última columna). */
+.tabla-scroll {
+    overflow-x: auto;
+}
+
+    .tabla-scroll > table {
+        min-width: 100%;
+    }
+
+/* --- Mensajes de estado --- */
+
+.aviso, .error, .resultado, .constancia {
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-surface);
+}
+
+.aviso {
+    color: var(--color-warning);
+    background: var(--color-warning-bg);
+    border-color: var(--color-warning-border);
+}
+
+.error {
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border-color: var(--color-danger-border);
+}
+
+.resultado, .constancia {
+    color: var(--color-success);
+    background: var(--color-success-bg);
+    border-color: var(--color-success-border);
+}
+
+    .resultado h2, .constancia h2 {
+        color: inherit;
+        margin-top: 0;
+    }
+
+    /* El contenido interno (tablas, párrafos con datos) vuelve al texto normal: solo el marco
+       del mensaje lleva el color del estado. */
+    .resultado table, .resultado p, .resultado dl,
+    .constancia dl {
+        color: var(--color-text);
+    }
+
+dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0.5rem 0 0;
+}
+
+dt {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+dd {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+.nota {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    max-width: 34rem;
+}
+
+/* Cada importe, alícuota y CRC se selecciona de a uno, sin arrastrar el rótulo ni los demás
+   valores (FR-057): un clic dentro del span selecciona únicamente su contenido. Se resalta
+   levemente para que el facturador note que es copiable. */
+.copiable {
+    user-select: all;
+    font-family: var(--font-mono);
+    background: var(--color-bg);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+}
+
+/* --- Blazor: errores no controlados y validación --- */
+
+.valid.modified:not([type=checkbox]) {
+    border-color: var(--color-success-border);
+}
+
+.invalid {
+    border-color: var(--color-danger);
+}
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+.darker-border-checkbox.form-check-input {
+    border-color: #929292;
+}
+
+/* Error no controlado de un componente interactivo: oculto hasta que Blazor lo muestra. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    background: var(--color-warning-bg);
+    border-top: 1px solid var(--color-warning-border);
+    color: var(--color-warning);
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+        background: none;
+        color: inherit;
+        font-weight: normal;
+        padding: 0;
+    }
+
+    #blazor-error-ui .reload {
+        color: var(--color-primary);
+        font-weight: 600;
+    }
+
+/* Comunicación interrumpida (FR-018). Blazor agrega al contenedor las clases components-reconnect-*. */
+#components-reconnect-modal {
+    display: none;
+}
+
+    #components-reconnect-modal.components-reconnect-show,
+    #components-reconnect-modal.components-reconnect-failed,
+    #components-reconnect-modal.components-reconnect-rejected {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem 1.25rem;
+        background: var(--color-warning-bg);
+        border-bottom: 1px solid var(--color-warning-border);
+        color: var(--color-warning);
+        z-index: 1001;
+    }
+
+    #components-reconnect-modal .reconexion-intentando,
+    #components-reconnect-modal .reconexion-fallida,
+    #components-reconnect-modal .reconexion-rechazada {
+        display: none;
+    }
+
+    #components-reconnect-modal.components-reconnect-show .reconexion-intentando,
+    #components-reconnect-modal.components-reconnect-failed .reconexion-fallida,
+    #components-reconnect-modal.components-reconnect-rejected .reconexion-rechazada {
+        display: block;
+    }
+
+    #components-reconnect-modal button {
+        margin-top: 0.35rem;
+    }
+
+/* --- Angosto (celular/tablet) --- */
+
+@media (max-width: 40rem) {
+    main {
+        padding: 1.25rem 1rem 2.5rem;
+    }
+
+    .navegacion {
+        padding: 0.65rem 1rem;
+    }
+
+    .navegacion .usuario {
+        margin-left: 0;
+        order: 3;
+        width: 100%;
+    }
+
+    .campo, input, select, textarea {
+        max-width: 100%;
+    }
+}

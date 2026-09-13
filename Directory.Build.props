@@ -1,0 +1,17 @@
+<Project>
+
+  <!--
+    Configuración común a los cuatro proyectos de la solución.
+
+    TreatWarningsAsErrors hace que el build falle ante el primer warning, en
+    lugar de dejarlo pasar: la constitución exige cero warnings y prohíbe
+    silenciarlos con #pragma warning disable, NoWarn o SuppressMessage.
+  -->
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
