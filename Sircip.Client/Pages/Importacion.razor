@@ -28,7 +28,9 @@
 
     <div class="campo">
         <label for="mes">Mes</label>
-        <InputNumber id="mes" @bind-Value="modelo.Mes" min="1" max="12" />
+        @* Sin min ni max: el navegador bloquearía el envío con su propio aviso, en lugar del
+           mensaje del sistema señalado en el campo (FR-014). El rango lo valida la API. *@
+        <InputNumber id="mes" @bind-Value="modelo.Mes" />
         @if (ErrorDe("mes") is { } errorMes)
         {
             <span class="error-campo">@errorMes</span>
