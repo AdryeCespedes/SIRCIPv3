@@ -171,4 +171,4 @@ Las **5 historias de usuario están completas e implementadas**:
 
 Con la Fase 8 (verificación final: cobertura de los 32 AC del PRD, escaneo de secretos, cero warnings, suite completa con rendimiento, y las 6 pasadas de `quickstart.md` de punta a punta) también completa, las **115 tareas de [`tasks.md`](specs/001-calculo-percepciones-sircip/tasks.md) están terminadas**.
 
-Todo el trabajo vive en la rama `001-calculo-percepciones-sircip`, todavía **sin mergear a `main`**.
+Todo el trabajo se desarrolló en la rama `001-calculo-percepciones-sircip` y ya está **mergeado a `main`**.
