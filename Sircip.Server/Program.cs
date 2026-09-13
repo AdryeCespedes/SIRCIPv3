@@ -5,6 +5,7 @@ using Sircip.Server.Configuration;
 using Sircip.Server.Data;
 using Sircip.Server.Endpoints;
 using Sircip.Server.Padron.Services;
+using Sircip.Server.Percepciones.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,8 @@ builder.Services.AddScoped<ServicioAutenticacion>();
 builder.Services.AddSingleton<ResolutorRutaImportacion>();
 builder.Services.AddScoped<ServicioImportaciones>();
 builder.Services.AddScoped<ImportadorPadron>();
+builder.Services.AddSingleton<LectorPadron>();
+builder.Services.AddScoped<CalculadorPercepciones>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ManejadorExcepciones>();

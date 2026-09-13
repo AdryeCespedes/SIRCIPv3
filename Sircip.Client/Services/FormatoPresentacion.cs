@@ -28,4 +28,10 @@ public static class FormatoPresentacion
 
     // Punto como separador de miles.
     public static string Cantidad(int cantidad) => cantidad.ToString("#,0", Numeros);
+
+    // Coma decimal, punto de miles, siempre 2 decimales: "1.234,50".
+    public static string Importe(decimal importe) => importe.ToString("#,0.00", Numeros);
+
+    // Porcentaje con hasta 2 decimales, sin ceros de más: "0,05%" · "1,5%".
+    public static string Alicuota(decimal alicuota) => (alicuota * 100).ToString("0.##", Numeros) + "%";
 }

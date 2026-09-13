@@ -43,7 +43,7 @@ public class ImportacionInterrumpidaTests : IClassFixture<FabricaAplicacionDePru
         Assert.Equal(3, ArchivoPadronDePrueba.LeerCantidad(fabrica.ArchivoPadron(periodo)));
     }
 
-    [Fact(Skip = "Se habilita con US3 (T088): hasta entonces el cálculo es un stub que responde 501.")]
+    [Fact]
     public async Task Con_un_padron_huerfano_sin_constancia_el_calculo_del_periodo_responde_404()
     {
         const int periodo = 202602;

@@ -28,6 +28,12 @@ h1:focus {
     border-color: #929292;
 }
 
+/* Cada importe, alícuota y CRC se selecciona de a uno, sin arrastrar el rótulo ni los demás
+   valores (FR-057): un clic dentro del span selecciona únicamente su contenido. */
+.copiable {
+    user-select: all;
+}
+
 /* Error no controlado de un componente interactivo: oculto hasta que Blazor lo muestra. */
 #blazor-error-ui {
     display: none;
