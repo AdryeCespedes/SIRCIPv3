@@ -9,7 +9,19 @@ Guía para levantar el sistema y verificar de punta a punta que la feature funci
 ## Prerrequisitos
 
 - **.NET 8 SDK** (verificado: 8.0.131) — `dotnet --version`
-- **SQL Server** local, con una base vacía para el sistema
+- **SQL Server** local. En este equipo corre en **Windows** y la aplicación en **WSL**, con dos consecuencias:
+  - WSL necesita red *mirrored* con loopback hacia el host. En `C:\Users\<usuario de Windows>\.wslconfig`:
+
+    ```ini
+    [wsl2]
+    networkingMode=mirrored
+
+    [experimental]
+    hostAddressLoopback=true
+    ```
+
+    y después `wsl --shutdown` **desde Windows**. Sin `hostAddressLoopback`, la conexión al puerto 1433 desde WSL da timeout aunque SQL Server esté bien configurado. En la verificación de este equipo, las primeras conexiones tras el reinicio fallaron durante unos minutos y después quedaron estables, sin causa determinada: ante un timeout recién reiniciado WSL, reintentar antes de cambiar la configuración.
+  - Desde WSL **no funciona `Trusted_Connection=True`**, que es autenticación integrada de Windows. Hace falta un **login SQL** con la instancia en modo de autenticación mixto; se crea en §2.
 - Dos directorios en el disco del servidor, **en el mismo volumen** (el renombrado atómico de `research.md` D-04 lo exige):
   - directorio de importación, donde el Administrador deja los `.txt` del padrón
   - directorio de datos del padrón, donde el sistema escribe los `.bin`
@@ -19,7 +31,7 @@ Guía para levantar el sistema y verificar de punta a punta que la feature funci
   ```bash
   mkdir -p ~/sircip/importacion ~/sircip/padron
   ```
-- Certificado de desarrollo para HTTPS: `dotnet dev-certs https --trust`. El canal cifrado es obligatorio (FR-019 / RNF-06) y un pedido por HTTP se rechaza sin procesar.
+- Certificado de desarrollo para HTTPS. El canal cifrado es obligatorio (FR-019 / RNF-06) y un pedido por HTTP se rechaza sin procesar. Los **tests no lo necesitan** —`WebApplicationFactory` corre en memoria, sin TLS—, pero **levantar la aplicación a mano sí** (§3 y escenarios V1–V6). Como el navegador corre en Windows y el `HttpClient` de `Sircip.Client` hacia `Sircip.Server` corre en WSL, los dos lados tienen que confiar en **el mismo** certificado; `dotnet dev-certs https --check --trust` en cada lado muestra cuál tiene. En Linux, `dotnet dev-certs https --trust` requiere `sudo`.
 
 ---
 
@@ -30,7 +42,11 @@ Ningún secreto va en archivos versionados (Principio VI). En desarrollo se usa 
 ```bash
 dotnet restore
 
-dotnet user-secrets --project Sircip.Server set "ConnectionStrings:Sircip" "Server=localhost;Database=Sircip;Trusted_Connection=True;TrustServerCertificate=True"
+# La contraseña se lee sin eco para que no quede en el historial de la shell
+read -rsp "Contraseña del login sircip: " SQLPASS; echo
+dotnet user-secrets --project Sircip.Server set "ConnectionStrings:Sircip" "Server=localhost,1433;Database=Sircip;User Id=sircip;Password=$SQLPASS;TrustServerCertificate=True"
+unset SQLPASS
+
 dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioImportacion" "$HOME/sircip/importacion"
 dotnet user-secrets --project Sircip.Server set "Sircip:DirectorioPadron"      "$HOME/sircip/padron"
 dotnet user-secrets --project Sircip.Server set "Sircip:FactorCostoBcrypt"     "12"
@@ -38,9 +54,24 @@ dotnet user-secrets --project Sircip.Server set "Sircip:FactorCostoBcrypt"     "
 dotnet user-secrets --project Sircip.Client set "Sircip:ApiBaseUrl" "https://localhost:7001"
 ```
 
-`appsettings.json` no debe contener ninguno de estos valores, ni siquiera como ejemplo o fallback.
+`appsettings.json` no debe contener ninguno de estos valores, ni siquiera como ejemplo o fallback. `TrustServerCertificate=True` se admite solo contra la instancia local de desarrollo, cuyo certificado es autofirmado.
 
-## 2 · Esquema y usuario inicial
+## 2 · Login SQL, esquema y usuario inicial
+
+El login lo crea **una sola vez** alguien con rol `sysadmin` en la instancia, **desde Windows** y con autenticación integrada. Se usa `sqlcmd` en modo interactivo para que la contraseña no quede en el historial de PowerShell:
+
+```powershell
+sqlcmd -S localhost -E -C
+```
+
+```sql
+CREATE LOGIN sircip WITH PASSWORD = N'<contraseña fuerte>', CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
+ALTER SERVER ROLE dbcreator ADD MEMBER sircip;
+GO
+EXIT
+```
+
+`dbcreator` alcanza para que `dotnet ef database update` cree la base `Sircip`, y quien la crea queda como su dueño. **No** darle `sysadmin`: la aplicación no administra la instancia.
 
 ```bash
 dotnet ef database update --project Sircip.Server
@@ -232,6 +263,9 @@ Antes de dar un cambio por terminado, en este orden (constitución, "Flujo de De
 | Toda importación falla por ruta fuera del directorio | `Sircip:DirectorioImportacion` sin configurar o apuntando a otro lado |
 | La importación falla al persistir | falta permiso de escritura sobre `Sircip:DirectorioPadron`, o no hay espacio |
 | El renombrado final de la importación falla | directorio temporal y definitivo en **volúmenes distintos**; deben compartir volumen |
-| Todo pedido responde 401 | pedido por HTTP en lugar de HTTPS (FR-019), o certificado de desarrollo sin confiar |
+| Todo pedido responde 401 | pedido por HTTP en lugar de HTTPS (FR-019) |
+| `dotnet ef database update` o los tests de integración dan timeout contra SQL Server | falta `hostAddressLoopback=true` en `.wslconfig`, o WSL se reinició hace instantes: reintentar antes de tocar la configuración |
+| `Login failed for user` desde WSL | se usó `Trusted_Connection=True`, que no funciona desde WSL, o el login `sircip` todavía no existe (§2) |
+| El navegador advierte que el certificado no es válido, o `Sircip.Client` no puede llamar a la API | Windows y WSL confían en certificados de desarrollo distintos; los dos lados tienen que usar el mismo |
 | El cálculo devuelve 404 para un período recién importado | la importación quedó sin constancia — es la autoridad, no el archivo (research D-04) |
 | El ingreso falla con credenciales correctas | `Rol` almacenado fuera de `{1, 2}`, `Habilitado = 0`, o hash con formato inesperado (FR-002) |
