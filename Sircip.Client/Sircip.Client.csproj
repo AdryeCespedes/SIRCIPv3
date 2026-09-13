@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sircip.Contracts\Sircip.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>b4bc6472-6c70-40e0-8dd5-0d091a137c8c</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

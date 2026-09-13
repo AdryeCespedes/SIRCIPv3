@@ -1,0 +1,10 @@
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="datosDeRuta">
+        <AuthorizeRouteView RouteData="datosDeRuta" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized Context="estado">
+                <NoAutorizado Autenticado="@(estado.User.Identity?.IsAuthenticated == true)" />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="datosDeRuta" Selector="h1" />
+    </Found>
+</Router>

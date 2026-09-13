@@ -1,0 +1,23 @@
+@* Navegación persistente. Lista solo las pantallas que el rol de la sesión puede usar y
+   nunca ofrece un acceso que después se denegaría (FR-012). El conjunto es cerrado: las
+   cuatro pantallas de FR-011, con la baja de un período alojada en el historial. *@
+
+<AuthorizeView>
+    <Authorized>
+        <nav class="navegacion">
+            <NavLink href="" Match="NavLinkMatch.All">Cálculo de percepciones</NavLink>
+
+            <AuthorizeView Roles="Administrador" Context="administrador">
+                <NavLink href="importacion">Importación del padrón</NavLink>
+                <NavLink href="historial">Historial de importaciones</NavLink>
+            </AuthorizeView>
+
+            <span class="usuario">@context.User.Identity?.Name</span>
+
+            <form method="post" action="salir">
+                <AntiforgeryToken />
+                <button type="submit">Salir</button>
+            </form>
+        </nav>
+    </Authorized>
+</AuthorizeView>

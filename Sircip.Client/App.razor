@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="app.css" />
+    <HeadOutlet @rendermode="ModoDeRenderizado" />
+</head>
+
+<body>
+    <Routes @rendermode="ModoDeRenderizado" />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    // La pantalla de ingreso se renderiza estática, sin circuito interactivo: es la única
+    // que tiene que escribir la cookie de sesión en la respuesta HTTP.
+    private IComponentRenderMode? ModoDeRenderizado =>
+        HttpContext.Request.Path.StartsWithSegments("/ingreso") ? null : InteractiveServer;
+}

@@ -1,0 +1,103 @@
+@page "/ingreso"
+@attribute [AllowAnonymous]
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Sircip.Contracts.Authentication
+@inject ClienteAutenticacion Autenticacion
+@inject NavigationManager Navegacion
+
+@* Única pantalla accesible sin sesión. Se renderiza estática (ver App.razor) porque al
+   ingresar escribe la cookie de sesión en la respuesta HTTP. *@
+
+<PageTitle>Ingreso · SIRCIP</PageTitle>
+
+<h1>Ingreso</h1>
+
+@if (SesionTerminada)
+{
+    <p class="aviso" role="status">Tu sesión terminó. Ingresá de nuevo para continuar.</p>
+}
+
+@if (mensajeError is not null)
+{
+    <p class="error" role="alert">@mensajeError</p>
+}
+
+<EditForm Model="Modelo" method="post" OnSubmit="IngresarAsync" FormName="ingreso">
+    <AntiforgeryToken />
+
+    <div class="campo">
+        <label for="usuario">Nombre de usuario</label>
+        <InputText id="usuario" @bind-Value="Modelo.Usuario" autocomplete="username" />
+        @if (ErrorDe("usuario") is { } errorUsuario)
+        {
+            <span class="error-campo">@errorUsuario</span>
+        }
+    </div>
+
+    <div class="campo">
+        <label for="contrasena">Contraseña</label>
+        <InputText id="contrasena" type="password" @bind-Value="Modelo.Contrasena" autocomplete="current-password" />
+        @if (ErrorDe("contrasena") is { } errorContrasena)
+        {
+            <span class="error-campo">@errorContrasena</span>
+        }
+    </div>
+
+    <button type="submit">Ingresar</button>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private ModeloIngreso Modelo { get; set; } = new();
+
+    [SupplyParameterFromQuery(Name = "sesionTerminada")]
+    private bool SesionTerminada { get; set; }
+
+    private string? mensajeError;
+    private IReadOnlyList<Sircip.Contracts.Errors.ErrorDeCampo> erroresDeCampo = Array.Empty<Sircip.Contracts.Errors.ErrorDeCampo>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Una cookie cuya sesión la API ya no reconoce se descarta al llegar acá (FR-016).
+        if (SesionTerminada && HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+    }
+
+    private async Task IngresarAsync()
+    {
+        var resultado = await Autenticacion.IngresarAsync(new PedidoIngreso(Modelo.Usuario, Modelo.Contrasena), HttpContext.RequestAborted);
+
+        if (resultado.Respuesta is null)
+        {
+            mensajeError = resultado.ErroresDeCampo.Count > 0 ? null : resultado.MensajeError;
+            erroresDeCampo = resultado.ErroresDeCampo;
+
+            // Se conserva el nombre de usuario ingresado, nunca la contraseña (FR-014).
+            Modelo.Contrasena = null;
+            return;
+        }
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            ProveedorEstadoAutenticacion.CrearPrincipal(resultado.Respuesta));
+
+        // Los dos roles llegan a la pantalla de cálculo, la de uso diario (FR-012).
+        Navegacion.NavigateTo("/");
+    }
+
+    private string? ErrorDe(string campo) =>
+        erroresDeCampo.FirstOrDefault(error => error.Campo == campo)?.Detalle;
+
+    private sealed class ModeloIngreso
+    {
+        public string? Usuario { get; set; }
+
+        public string? Contrasena { get; set; }
+    }
+}
